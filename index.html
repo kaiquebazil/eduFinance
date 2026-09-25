@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6857e9" />
+  <title>EduFinance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .dialog-modal { max-width: 480px; }
+    .dialog-copy { color: #6f6c80; line-height: 1.5; margin: -4px 0 22px; }
+    .dialog-actions { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 20px; }
+    .dialog-actions .save { margin: 0; }
+    .modal-secondary, .remove-category { border: 0; border-radius: 14px; background: #efedf5; color: #625e73; font-weight: 700; cursor: pointer; }
+    .modal-secondary { padding: 14px; }
+    .category-row { min-height: 64px; cursor: default; }
+    .remove-category { margin-left: auto; width: 34px; height: 34px; border-radius: 11px; font-size: 23px; font-weight: 400; }
+    .setting > span:not(.s-icon) { display: flex; flex-direction: column; gap: 3px; }
+    .setting > span:not(.s-icon) small { color: #89879b; font-size: 12px; }
+    .search-modal { min-height: 65vh; }
+    .search-count { margin: 0 0 10px; color: #89879b; font-size: 12px; }
+    .search-results { max-height: 46vh; overflow-y: auto; padding-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="screen" class="screen" aria-live="polite"></section>
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item active" data-page="home"><span>⌂</span>Início</button>
+      <button class="nav-item" data-page="stats"><span>◔</span>Relatórios</button>
+      <button class="add-button" id="addTransaction" aria-label="Adicionar lançamento">+</button>
+      <button class="nav-item" data-page="budget"><span>◒</span>Orçamento</button>
+      <button class="nav-item" data-page="settings"><span>⚙</span>Ajustes</button>
+    </nav>
+  </main>
+  <div id="modalRoot"></div>
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
