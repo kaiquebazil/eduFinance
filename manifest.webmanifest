@@ -1,0 +1,16 @@
+{
+  "id": "./index.html",
+  "name": "EduFinance",
+  "short_name": "EduFinance",
+  "description": "Organize sua vida financeira com o EduFinance.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f4fa",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

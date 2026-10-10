@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport sem bloqueio de zoom (acessibilidade) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>EduFinance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .dialog-modal { max-width: 480px; }
+    .dialog-copy { color: #64748b; line-height: 1.5; margin: -4px 0 22px; }
+    .dialog-actions { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 20px; }
+    .dialog-actions .save { margin: 0; }
+    .modal-secondary, .remove-category { border: 0; border-radius: 14px; background: #f1f5f9; color: #475569; font-weight: 700; cursor: pointer; }
+    .modal-secondary { padding: 14px; }
+    .category-row { min-height: 64px; cursor: default; }
+    .remove-category { margin-left: auto; width: 34px; height: 34px; border-radius: 11px; font-size: 1.4375rem; font-weight: 400; }
+    .setting > span:not(.s-icon) { display: flex; flex-direction: column; gap: 3px; }
+    .setting > span:not(.s-icon) small { color: #94a3b8; font-size: 0.75rem; }
+    .search-modal { min-height: 65vh; }
+    .search-count { margin: 0 0 10px; color: #94a3b8; font-size: 0.75rem; }
+    .search-results { max-height: 46vh; overflow-y: auto; padding-bottom: 8px; }
+    .search-modal .modal-secondary { margin-bottom: env(safe-area-inset-bottom, 0px); }
+  </style>
+</head>
+<body>
+  <!-- fundo decorativo -->
+  <div class="bg-decor" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
+
+  <main class="app-shell">
+    <section id="screen" class="screen" aria-live="polite"></section>
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item active" data-page="home" aria-label="Início">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        </span>
+        Início
+      </button>
+      <button class="nav-item" data-page="stats" aria-label="Relatórios">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        </span>
+        Relatórios
+      </button>
+      <button class="add-button" id="addTransaction" aria-label="Adicionar lançamento">+</button>
+      <button class="nav-item" data-page="budget" aria-label="Orçamento">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </span>
+        Orçamento
+      </button>
+      <button class="nav-item" data-page="settings" aria-label="Ajustes">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="8" cy="18" r="2" fill="currentColor"/></svg>
+        </span>
+        Ajustes
+      </button>
+    </nav>
+  </main>
+  <div id="modalRoot"></div>
+  <div id="toast" role="status"></div>
+  <script src="assets/js/core.js"></script>
+  <script src="assets/js/views.js"></script>
+  <script src="assets/js/modals.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
