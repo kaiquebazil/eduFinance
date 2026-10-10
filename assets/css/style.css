@@ -665,7 +665,7 @@ button { -webkit-appearance: none; appearance: none; }
   height: 145px;
   display: flex;
   gap: 14px;
-  align-items: flex-end;
+  align-items: center;
   padding: 16px 4px 0;
   border-bottom: 1px solid var(--line);
 }
@@ -870,7 +870,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .category-actions button {
   width: 27px;
   height: 30px;
-  padding: 0;
+  padding: 16px;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -895,10 +895,10 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 200;
-  padding: 0;
+  padding: 16px;
   animation: backdrop-in 0.25s ease;
 }
 @keyframes backdrop-in {
@@ -909,18 +909,18 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .modal {
   background: #fff;
   width: min(100%, 480px);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-  animation: modal-up 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  animation: modal-up 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   max-height: 92vh;
   max-height: 92dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
 }
 
 @keyframes modal-up {
-  from { transform: translateY(100%); }
+  from { transform: translateY(16px); }
   to   { transform: translateY(0); }
 }
 
