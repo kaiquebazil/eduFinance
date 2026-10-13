@@ -92,6 +92,13 @@ document.addEventListener('click', e => {
     return;
   }
 
+  const balanceMode = e.target.closest('[data-home-balance-mode]');
+  if (balanceMode) {
+    state.homeBalanceMode = balanceMode.dataset.homeBalanceMode;
+    persist(); render();
+    return;
+  }
+
   if (e.target.closest('#toggleTapSound')) {
     state.soundEnabled = !state.soundEnabled;
     persist(); render();
@@ -352,12 +359,7 @@ document.addEventListener('submit', async e => {
     }
 
     page = 'home';
-    applyRecurring();
     render();
-    if (window._recurringGenerated) {
-      toast(`🔁 ${window._recurringGenerated} lançamento(s) recorrente(s) gerado(s) automaticamente`);
-      window._recurringGenerated = 0;
-    }
   } catch {
     toast('Não foi possível usar o PIN neste contexto. Abra o app por localhost ou HTTPS.');
   }
@@ -366,6 +368,8 @@ document.addEventListener('submit', async e => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.pinLock?.enabled && page !== 'lock') {
     page = 'lock';
+    render();
+  } else if (!document.hidden && page !== 'lock') {
     render();
   }
 });
@@ -438,10 +442,5 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 if (page === 'lock') {
   render();
 } else {
-  applyRecurring();
   render();
-  if (window._recurringGenerated) {
-    toast(`🔁 ${window._recurringGenerated} lançamento(s) recorrente(s) gerado(s) automaticamente`);
-    window._recurringGenerated = 0;
-  }
 }

@@ -85,7 +85,7 @@ function modal() {
         <input name="note" placeholder="Ex.: almoço com amigos">
       </label>
       <label class="field"><span>Data da compra</span>
-        <input name="date" type="date" value="${dateForSelectedMonth()}">
+        <input name="date" type="date" value="${today()}">
       </label>
       <button class="save">Salvar lançamento</button>
     </form>

@@ -12,7 +12,10 @@ const themeOptions = [
   { id: 'purple', label: 'Roxo' }
 ];
 const fontScaleOptions = [0.88, 1, 1.12, 1.25];
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
 const currentMonth = () => today().slice(0, 7);
 const makeId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -119,6 +122,7 @@ const seed = {
   fontScale: 1,
   hideAmounts: false,
   hideHomeCards: false,
+  homeBalanceMode: 'month',
   soundEnabled: true,
   pinLock: null,
   selectedMonth: currentMonth(),
@@ -159,6 +163,7 @@ function sanitizeState(s) {
   s.colorMode = ['light', 'dark', 'system'].includes(s.colorMode) ? s.colorMode : 'light';
   s.hideAmounts = Boolean(s.hideAmounts);
   s.hideHomeCards = Boolean(s.hideHomeCards);
+  s.homeBalanceMode = ['month', 'remaining'].includes(s.homeBalanceMode) ? s.homeBalanceMode : 'month';
   s.soundEnabled = s.soundEnabled !== false;
   s.pinLock = s.pinLock?.enabled && /^[a-f0-9]{32}$/.test(s.pinLock.salt || '') && /^[a-f0-9]{64}$/.test(s.pinLock.hash || '')
     ? { enabled: true, salt: s.pinLock.salt, hash: s.pinLock.hash }
@@ -412,17 +417,23 @@ function applyRecurring() {
     let m = r.lastGenerated ? addMonths(r.lastGenerated, 1) : r.startMonth;
     while (m <= currentMonth()) {
       const day = String(Math.min(r.day, lastDayOfMonth(m))).padStart(2, '0');
-      state.transactions.push({
-        id: makeId(), type: r.type, category: r.category, icon: r.icon,
-        accountId: r.accountId, amount: r.amount, date: `${m}-${day}`,
-        note: r.note, recurringId: r.id
-      });
+      const alreadyGenerated = state.transactions.some(t =>
+        t.recurringId === r.id && monthOf(t.date) === m
+      );
+      if (!alreadyGenerated) {
+        state.transactions.push({
+          id: makeId(), type: r.type, category: r.category, icon: r.icon,
+          accountId: r.accountId, amount: r.amount, date: `${m}-${day}`,
+          note: r.note, recurringId: r.id
+        });
+        generated++;
+        changed = true;
+      }
       r.lastGenerated = m;
       m = addMonths(m, 1);
-      changed = true;
-      generated++;
     }
   });
+  if (generated && state.selectedMonth < currentMonth()) state.selectedMonth = currentMonth();
   if (changed) {
     persist();
     // aviso exibido após render()

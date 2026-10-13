@@ -112,7 +112,9 @@ function groupedTransactions(limit, list = null) {
 function home() {
   const t            = totals();
   const cards        = state.accounts.filter(isCredit);
-  const balance      = state.accounts.reduce((sum, a) => sum + accountBalance(a), 0);
+  const balance      = state.homeBalanceMode === 'remaining'
+    ? state.accounts.reduce((sum, a) => sum + accountBalance(a), 0)
+    : t.income - t.expense;
   const availableCredit = cards.reduce((sum, card) => sum + Math.max(Number(card.limit || 0) - creditUsed(card), 0), 0);
   const nextInvoice = cards.flatMap(card => {
     const months = [...new Set(state.transactions
@@ -162,10 +164,11 @@ function home() {
       <div class="home-month"><span>${monthYear}</span><b>${monthName}<span class="month-arrows"><button data-month="-1" aria-label="Mês anterior">‹</button><button data-month="1" aria-label="Próximo mês">›</button></span></b></div>
       <div><span>Despesas</span><b>${money(t.expense)}</b></div>
       <div><span>Receitas</span><b>${money(t.income)}</b></div>
-      <div><span>Saldo</span><b>${money(balance)}</b></div>
+      <div><span>${state.homeBalanceMode === 'remaining' ? 'Saldo restante' : 'Saldo do mês'}</span><b>${money(balance)}</b></div>
     </div>
   </header>
-  <div class="content home-content">
+  <div class="content home-content ${state.hideHomeCards ? 'home-content-cards-hidden' : ''}">
+    <aside class="home-cards-column">
     <div class="home-finance-heading">
       <h2>Cartões</h2>
       <button type="button" id="toggleHomeCards" aria-expanded="${!state.hideHomeCards}" aria-label="${state.hideHomeCards ? 'Mostrar resumos dos cartões' : 'Ocultar resumos dos cartões'}">
@@ -191,12 +194,15 @@ function home() {
         <span class="home-alert-icon" aria-hidden="true">!</span><span><b>${escapeHtml(c.name)}</b> está em ${pct}% do limite (${money(used)} de ${money(c.limit)})</span>
       </div>`;
     }).join('')}
+    </aside>
 
+    <section class="home-movements">
     <div class="section-head home-section-head">
       <h2 class="section-title">Movimentações</h2>
       <button class="link" data-go="all">Ver todas</button>
     </div>
     ${transactions || '<div class="empty"><b>Nenhum lançamento neste mês</b>Use o botão + para registrar uma movimentação.</div>'}
+    </section>
   </div>
   </div>`;
 }
@@ -442,6 +448,11 @@ function settings() {
         <span><strong>Contas e cartões</strong><small>${state.accounts.length} cadastrado(s)</small></span>
         <b class="chev">›</b>
       </button>
+      <button class="setting" data-go="balanceDisplay">
+        <span class="s-icon">💰</span>
+        <span><strong>Saldo na tela inicial</strong><small>${state.homeBalanceMode === 'remaining' ? 'Saldo que sobrou até agora' : 'Saldo do mês'}</small></span>
+        <b class="chev">›</b>
+      </button>
       <button class="setting" data-go="categories">
         <span class="s-icon">▦</span>
         <span><strong>Categorias</strong><small>Receitas e despesas</small></span>
@@ -508,6 +519,14 @@ function settings() {
       </button>
     </div>
   </div>`;
+}
+
+function balanceDisplayPage() {
+  const options = [
+    { id: 'month', title: 'Saldo do mês', description: 'Receitas menos despesas do mês selecionado.' },
+    { id: 'remaining', title: 'Saldo que sobrou até agora', description: 'Saldo acumulado das contas, como era exibido antes.' }
+  ];
+  return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="settings" aria-label="Voltar">‹</button><span class="period">Tela inicial</span><span class="icon-btn" aria-hidden="true" style="visibility:hidden">‹</span></div><div class="balance-label">Escolha como exibir</div><div class="balance" style="font-size:1.375rem">Saldo</div></header><div class="content"><div class="setting-list">${options.map(option => `<button type="button" class="setting" data-home-balance-mode="${option.id}" aria-pressed="${state.homeBalanceMode === option.id}"><span class="s-icon">${state.homeBalanceMode === option.id ? '✓' : '○'}</span><span><strong>${option.title}</strong><small>${option.description}</small></span></button>`).join('')}</div></div>`;
 }
 
 function privacyPage() {
@@ -868,8 +887,10 @@ function maskVisibleAmounts(root) {
 
 /* ==== RENDER ==== */
 function render() {
+  if (page !== 'lock') applyRecurring();
   const screens = {
     home, stats, categoryDetail, budget, settings, privacy: privacyPage, lock: lockScreen, themes: themesPage, fontSizePage, accounts,
+    balanceDisplay: balanceDisplayPage,
     categories:   categoriesPage,
     all,
     installments: installmentsPage,
@@ -886,6 +907,11 @@ function render() {
   screen.style.animation = '';
   document.body.dataset.appLocked = page === 'lock' && Boolean(state.pinLock?.enabled) ? 'true' : 'false';
   maskVisibleAmounts(screen);
+
+  if (window._recurringGenerated) {
+    toast(`🔁 ${window._recurringGenerated} lançamento(s) recorrente(s) gerado(s) automaticamente`);
+    window._recurringGenerated = 0;
+  }
 
   screen.querySelectorAll('.balance, .stat-number').forEach(el => {
     el.style.opacity   = '0';

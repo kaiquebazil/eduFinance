@@ -134,6 +134,8 @@ html { font-size: calc(16px * var(--font-scale)); }
 :root[data-mode="dark"] .report-category-row:hover { background:var(--card); }
 :root[data-mode="dark"] .report-period-row { background:var(--card); }
 :root[data-mode="dark"] .report-category-icon { background:var(--line-2); }
+:root[data-mode="dark"] .transaction:hover,
+:root[data-mode="dark"] .transaction:active { background:#334155; }
 
 * {
   box-sizing: border-box;
@@ -1548,12 +1550,20 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   .home-content {
     display: grid;
     grid-template-columns: minmax(280px, .82fr) minmax(0, 1.35fr);
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto;
+    align-content: start;
     align-items: start;
     column-gap: 34px;
     padding: 24px 30px 30px;
   }
-  .home-finance-heading, .home-finance-cards, .home-alert { grid-column: 1; }
+  .home-content-cards-hidden {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .home-cards-column { grid-column: 1; min-width: 0; }
+  .home-movements { grid-column: 2; min-width: 0; }
+  .home-content-cards-hidden .home-cards-column,
+  .home-content-cards-hidden .home-movements { grid-column: 1; }
   .home-finance-heading { margin: 0; }
   .home-finance-heading h2 { font-size: 1rem; }
   .home-finance-cards { grid-template-columns: 1fr; gap: 12px; margin: 14px 0 0; }
@@ -1562,8 +1572,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   .home-finance-card strong { font-size: 1.35rem; }
   .home-finance-card small { font-size: .75rem; }
   .home-alert { margin: 14px 0 0; }
-  .home-section-head, .home-day, .home-content > .empty { grid-column: 2; }
-  .home-section-head { grid-row: 1; padding: 0 0 10px; }
+  .home-section-head { padding: 0 0 10px; }
   .home-section-head .section-title { font-size: 1rem; }
   .home-day { margin: 0; }
   .home-day-heading { padding: 10px 14px; font-size: .8rem; }
@@ -1661,6 +1670,12 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   transition: background .15s, color .15s, border-color .15s;
 }
 .month-option:hover { background: var(--blue-50); }
+:root[data-mode="dark"] .month-option:hover:not(.selected),
+:root[data-mode="dark"] .month-option:active:not(.selected) {
+  border-color: #475569;
+  background: #334155;
+  color: var(--ink);
+}
 .month-option.selected {
   border-color: var(--blue-600);
   background: var(--blue-600);
