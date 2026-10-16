@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edufinance-shell-v21';
+const CACHE_NAME = 'edufinance-shell-v22';
 const APP_FILES = [
   './',
   './index.html',
