@@ -241,6 +241,7 @@ button { -webkit-appearance: none; appearance: none; }
 }
 
 /* ====== HEADER ====== */
+.credit-system-hidden { display: none !important; }
 .top {
   background: var(--grad-blue);
   color: #fff;

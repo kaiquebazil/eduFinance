@@ -168,7 +168,7 @@ function home() {
     </div>
   </header>
   <div class="content home-content ${state.hideHomeCards ? 'home-content-cards-hidden' : ''}">
-    <aside class="home-cards-column">
+    <aside class="home-cards-column credit-system-hidden">
     <div class="home-finance-heading">
       <h2>Cartões</h2>
       <button type="button" id="toggleHomeCards" aria-expanded="${!state.hideHomeCards}" aria-label="${state.hideHomeCards ? 'Mostrar resumos dos cartões' : 'Ocultar resumos dos cartões'}">
@@ -445,7 +445,7 @@ function settings() {
     <div class="setting-list">
       <button class="setting" data-go="accounts">
         <span class="s-icon">👛</span>
-        <span><strong>Contas e cartões</strong><small>${state.accounts.length} cadastrado(s)</small></span>
+        <span><strong>Contas</strong><small>${state.accounts.filter(a => !isCredit(a)).length} cadastrada(s)</small></span>
         <b class="chev">›</b>
       </button>
       <button class="setting" data-go="balanceDisplay">
@@ -483,12 +483,12 @@ function settings() {
         <span><strong>${window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone ? 'EduFinance instalado' : 'Baixar o app'}</strong><small>Adicionar à tela inicial</small></span>
         <b class="chev">›</b>
       </button>
-      <button class="setting" data-go="installments">
+      <button class="setting credit-system-hidden" data-go="installments">
         <span class="s-icon">💳</span>
         <span><strong>Compras parceladas</strong><small>Parcelas em aberto</small></span>
         <b class="chev">›</b>
       </button>
-      <button class="setting" data-go="invoices">
+      <button class="setting credit-system-hidden" data-go="invoices">
         <span class="s-icon">🧾</span>
         <span><strong>Faturas do cartão</strong><small>Pagar faturas abertas</small></span>
         <b class="chev">›</b>
@@ -653,6 +653,7 @@ function accounts() {
     </div>
     <button class="save" id="addAccountBtn" style="margin-top:12px;background:#f1f5f9;color:#475569;box-shadow:none">+ Adicionar conta</button>
 
+    <section class="credit-system-hidden">
     <h2 class="section-title" style="margin-top:22px">Cartões de crédito</h2>
     ${cards.length ? `<div class="cards">
       ${cards.map(c => {
@@ -681,6 +682,7 @@ function accounts() {
     </div>` : '<div class="empty"><b>Nenhum cartão cadastrado</b>Adicione um cartão para começar a parcelar compras.</div>'}
 
     <button class="save" id="addCard" style="margin-top:16px">💳 Adicionar cartão de crédito</button>
+    </section>
   </div>`;
 }
 

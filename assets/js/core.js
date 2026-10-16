@@ -136,14 +136,12 @@ const seed = {
   },
   categories,
   accounts: [
-    { id: 'cash', name: 'Carteira', icon: '👛', initialBalance: 0, kind: 'cash' },
-    { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' },
-    { id: 'card', name: 'Cartão de crédito', icon: '💳', initialBalance: 0, kind: 'credit', limit: 3000, closingDay: 25, dueDay: 5 }
+    { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
   ],
   transactions: [
     { id: 'income-seed', type: 'income', category: 'Salário', icon: '💼', accountId: 'bank', amount: 5200, date: `${currentMonth()}-05`, note: 'Pagamento mensal' },
     { id: 'market-seed', type: 'expense', category: 'Mercado', icon: '🛒', accountId: 'bank', amount: 248.7, date: `${currentMonth()}-11`, note: 'Supermercado' },
-    { id: 'ride-seed', type: 'expense', category: 'Transporte', icon: '🚕', accountId: 'cash', amount: 32.5, date: `${currentMonth()}-11`, note: 'Corrida' }
+    { id: 'ride-seed', type: 'expense', category: 'Transporte', icon: '🚕', accountId: 'bank', amount: 32.5, date: `${currentMonth()}-11`, note: 'Corrida' }
   ],
   recurring: []
 };
@@ -256,7 +254,7 @@ function migrate(old) {
   base.transactions = (old.transactions || []).map(t => ({
     ...t,
     id:        String(t.id || makeId()),
-    accountId: t.accountId || 'cash'
+    accountId: t.accountId || 'bank'
   }));
   const validGoalNames = new Set(base.categories.expense.map(c => c.name));
   const goals = Object.entries(base.categoryBudgets)
