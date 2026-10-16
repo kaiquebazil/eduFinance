@@ -171,8 +171,12 @@ function home() {
         ${state.hideHomeCards ? 'Mostrar' : 'Ocultar'}
       </button>
     </div>
-    ${state.hideHomeCards ? '' : `<div class="home-finance-cards">
-      <button type="button" class="home-finance-card" data-go="invoices" style="grid-column:1/-1">
+    ${state.hideHomeCards ? '' : `<div class="home-finance-cards" style="grid-template-columns:1fr">
+      <button type="button" class="home-finance-card" data-go="accounts">
+        <span>Gerenciar cartões</span>
+        <strong>${cards.length} ${cards.length === 1 ? 'cartão cadastrado' : 'cartões cadastrados'}</strong>
+      </button>
+      <button type="button" class="home-finance-card" data-go="invoices">
         <span>${nextInvoice ? (nextInvoice.dueDate < today() ? 'Fatura vencida' : 'Próximo vencimento') : 'Faturas abertas'}</span>
         <strong>${nextInvoice ? money(nextInvoice.remaining) : 'Tudo em dia'}</strong>
         <small>${nextInvoice ? `${escapeHtml(nextInvoice.card.name)} · vence ${dateFull(nextInvoice.dueDate)}` : 'Nenhuma fatura pendente'}</small>

@@ -117,13 +117,8 @@ const seed = {
   soundEnabled: true,
   pinLock: null,
   selectedMonth: currentMonth(),
-  budget: 2500,
-  categoryBudgets: {
-    Alimentação: 400,
-    Casa: 1000,
-    Saúde: 200,
-    Transporte: 300
-  },
+  budget: 0,
+  categoryBudgets: {},
   categories,
   accounts: [
     { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
@@ -215,6 +210,11 @@ function sanitizeState(s) {
 /* ==== MIGRAÇÃO ==== */
 function migrate(old) {
   if (!old) return structuredClone(seed);
+  const savedBudgets = { ...(old.categoryBudgets || {}) };
+  const presetBudgets = { Alimentação: 400, Casa: 1000, Saúde: 200, Transporte: 300 };
+  Object.entries(presetBudgets).forEach(([name, amount]) => {
+    if (Number(savedBudgets[name]) === amount) delete savedBudgets[name];
+  });
   const savedCategories = old.categories || {};
   const foodSubcategories = new Set(['açougue', 'mercado', 'padaria', 'sacolão']);
   const mergedCategories = Object.fromEntries(['expense', 'income'].map(type => {
@@ -234,9 +234,10 @@ function migrate(old) {
     ...old,
     version: 7,
     selectedMonth: old.selectedMonth || currentMonth(),
-    categoryBudgets: old.version < 7 && !Object.values(old.categoryBudgets || {}).some(amount => Number(amount) > 0)
+    budget: 0,
+    categoryBudgets: old.version < 7 && !Object.values(savedBudgets).some(amount => Number(amount) > 0)
       ? seed.categoryBudgets
-      : (old.categoryBudgets ?? seed.categoryBudgets),
+      : (old.categoryBudgets == null ? seed.categoryBudgets : savedBudgets),
     accounts: old.accounts && old.accounts.length ? old.accounts : seed.accounts,
     categories: mergedCategories,
     recurring: Array.isArray(old.recurring) ? old.recurring : []
