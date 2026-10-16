@@ -392,6 +392,10 @@ document.addEventListener('change', e => {
   render();
 });
 
+document.addEventListener('click', e => {
+  if (e.target.closest('.modal-close')) closeModal();
+});
+
 // Suporte a teclado: Enter/Espaço em elementos clicáveis
 document.addEventListener('keydown', e => {
   const clickable = e.target.closest?.('[data-tx-id],[data-edit-account],[data-edit-card],[data-cat-budget]');
@@ -422,6 +426,18 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 ;(function setupModalFocus() {
   const modalRoot = document.getElementById('modalRoot');
   let lastFocus   = null;
+
+  new MutationObserver(() => {
+    modalRoot.querySelectorAll('.modal, [role="dialog"]').forEach(modal => {
+      if (modal.querySelector('.modal-close')) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'modal-close';
+      button.setAttribute('aria-label', 'Fechar janela');
+      button.textContent = '×';
+      modal.append(button);
+    });
+  }).observe(modalRoot, { childList: true, subtree: true });
 
   new MutationObserver(() => {
     const open = modalRoot.childElementCount > 0;
