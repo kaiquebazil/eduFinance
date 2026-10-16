@@ -799,6 +799,7 @@ function categoriesPage() {
         <span class="category-label"><strong>${escapeHtml(c.name)}</strong><small>${c.hidden ? 'Oculta' : type === 'income' ? 'Receita' : 'Despesa'}</small></span>
         <div class="category-actions">
           <button type="button" data-edit-category="${type}" data-category-index="${index}" aria-label="Editar ${escapeHtml(c.name)}">✎</button>
+          <button type="button" class="category-help" data-category-help="${type}" data-category-index="${index}" aria-label="O que incluir em ${escapeHtml(c.name)}?"><span>?</span></button>
           <button type="button" class="category-visibility" data-toggle-category="${type}" data-category-index="${index}" aria-label="${c.hidden ? 'Reativar' : 'Ocultar'} ${escapeHtml(c.name)}" ${!c.hidden && cats.filter(item => !item.hidden).length <= 1 ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${c.hidden ? '<path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A11.8 11.8 0 0 1 12 5c5 0 8.3 4.5 9 7-.3 1-1.1 2.3-2.2 3.4M6.2 6.2C3.8 7.8 2.3 10.3 2 12c.7 2.5 4 7 10 7 1.1 0 2.1-.2 3-.5"/>' : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'}</svg></button>
           <button type="button" data-remove-category="${type}" data-category-name="${escapeHtml(c.name)}" aria-label="Excluir ${escapeHtml(c.name)}">×</button>
         </div>

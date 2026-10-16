@@ -452,6 +452,61 @@ function inputModal({ title, label, placeholder, value = '', action, money: isMo
   root.querySelector('#modalValue').focus();
 }
 
+function categoryHelpModal(type, categoryIndex) {
+  const category = state.categories[type]?.[categoryIndex];
+  if (!category) return;
+  const descriptions = {
+    'Acessórios': 'Bolsas, cintos, óculos, joias e outros complementos de uso pessoal.',
+    'Alimentação': 'Refeições e alimentos comprados fora de casa. Use Mercado para compras de supermercado e Lanches para pequenos lanches.',
+    'Animais de Estimação': 'Ração, brinquedos, banho, veterinário e outros cuidados com os animais.',
+    'Assinaturas': 'Cobranças recorrentes de streaming, aplicativos, jornais, clubes e serviços digitais.',
+    'Carro': 'Manutenção, consertos, lavagem, seguro e outros custos do veículo, exceto combustível, estacionamento e pedágios.',
+    'Combustível': 'Gasolina, etanol, diesel ou recarga de veículo elétrico.',
+    'Compras': 'Compras gerais que não se encaixam melhor em uma categoria específica, como Acessórios ou Roupas.',
+    'Cuidados Pessoais': 'Cabeleireiro, salão, cosméticos e produtos de higiene e cuidado pessoal.',
+    'Datas Comemorativas': 'Gastos com festas, comemorações, decoração e eventos de datas especiais.',
+    'Doações': 'Contribuições e doações feitas a pessoas, instituições ou causas.',
+    'Doacoes': 'Contribuições e doações feitas a pessoas, instituições ou causas.',
+    'Dízimos': 'Dízimos e contribuições religiosas.',
+    'Diversos': 'Despesas ocasionais que não se encaixam em nenhuma outra categoria.',
+    'Educação': 'Mensalidades, cursos, livros, material escolar e outras despesas de estudo.',
+    'Empréstimos': 'Parcelas ou pagamentos de empréstimos e financiamentos.',
+    'Entretenimento': 'Cinema, shows, jogos, eventos e outras atividades de entretenimento.',
+    'Estacionamento/Pedágios': 'Estacionamentos, zonas azuis, pedágios e tarifas de rodovia.',
+    'Estacionamentos/Pedágios': 'Estacionamentos, zonas azuis, pedágios e tarifas de rodovia.',
+    'Filhos': 'Despesas dos filhos, como mesada, atividades, cuidados e itens infantis.',
+    'Investimento': 'Aportes em investimentos, aplicações financeiras e ativos.',
+    'Lanches': 'Cafés, salgados, doces e pequenos lanches.',
+    'Lar': 'Utensílios, decoração, pequenos reparos e itens para a casa.',
+    'Lazer': 'Passeios, viagens de lazer, parques e atividades recreativas.',
+    'Mercado': 'Compras de supermercado, mercearia e itens de consumo doméstico.',
+    'Moradia': 'Aluguel, condomínio, prestação da casa e custos fixos de habitação.',
+    'Ofertas': 'Ofertas e contribuições religiosas além dos dízimos.',
+    'Presentes': 'Presentes comprados para outras pessoas.',
+    'Roupas': 'Roupas, calçados e ajustes ou consertos de vestuário.',
+    'Saúde': 'Consultas, exames, medicamentos, tratamentos e plano de saúde.',
+    'Taxas': 'Tarifas bancárias, taxas administrativas, multas e encargos.',
+    'Telefone': 'Plano de celular, recargas, telefone fixo e serviços de comunicação.',
+    'Trabalho': 'Despesas relacionadas ao trabalho, como transporte profissional, ferramentas e materiais.',
+    'Transporte': 'Ônibus, metrô, táxi, aplicativo de transporte e outras passagens.',
+    'Viagens': 'Passagens, hospedagem, alimentação e despesas durante viagens.',
+    'Salário': 'Salário, pagamento mensal e remuneração pelo trabalho.',
+    'Outros': 'Receitas que não se encaixam em outra categoria.'
+  };
+  const fallback = type === 'income'
+    ? `Registre aqui as receitas relacionadas a ${category.name}.`
+    : `Registre aqui despesas relacionadas a ${category.name}.`;
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `<div class="modal-backdrop"><section class="modal dialog-modal" role="dialog" aria-modal="true" aria-labelledby="categoryHelpTitle">
+    <div class="handle"></div>
+    <h2 class="modal-title" id="categoryHelpTitle">${escapeHtml(category.icon)} ${escapeHtml(category.name)}</h2>
+    <p class="dialog-copy">${escapeHtml(descriptions[category.name] || fallback)}</p>
+    <div class="dialog-actions"><button type="button" class="save" id="closeCategoryHelp">Entendi</button></div>
+  </section></div>`;
+  root.querySelector('#closeCategoryHelp').addEventListener('click', closeModal);
+  root.querySelector('.modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+}
+
 function categoryModal(initialType = 'expense', editIndex = null, onCreated = null) {
   const root = document.getElementById('modalRoot');
   let type = initialType;

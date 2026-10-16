@@ -216,6 +216,12 @@ document.addEventListener('click', e => {
   if (e.target.closest('#addCard'))   { cardModal(); return; }
   if (e.target.closest('#addCategory') || e.target.closest('#addCategoryBtn')) { categoryModal(); return; }
 
+  const categoryHelp = e.target.closest('[data-category-help]');
+  if (categoryHelp) {
+    categoryHelpModal(categoryHelp.dataset.categoryHelp, Number(categoryHelp.dataset.categoryIndex));
+    return;
+  }
+
   const editCategory = e.target.closest('[data-edit-category]');
   if (editCategory) {
     categoryModal(editCategory.dataset.editCategory, Number(editCategory.dataset.categoryIndex));
