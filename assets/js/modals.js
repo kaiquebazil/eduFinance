@@ -465,21 +465,20 @@ function categoryHelpModal(type, categoryIndex) {
     'Doações': 'Contribuições, instituições, causas sociais, cesta básica.',
     'Educação': 'Mensalidades, cursos, livros, material escolar, consultorias, treinamentos, uniformes.',
     'Empréstimos': 'Parcelas, empréstimos, financiamentos.',
-    'Estacionamento/Pedágios': 'Estacionamento, zona azul, pedágios.',
     'Estacionamentos/Pedágios': 'Estacionamento, zona azul, pedágios.',
     'Filhos': 'Mesada, atividades, cuidados, itens infantis.',
     'Lanches': 'Cafés, salgados, doces.',
     'Lazer': 'Passeios, parques, atividades recreativas, cinema, clubes, pesca.',
     'Moradia': 'Aluguel ou Financiamento, IPTU, conta de energia, gas, internet, agua, diariasta, condomínio, prestação da casa,.',
+    'Outros': 'Outras receitas.',
     'Presentes': 'Presentes, lembranças.',
     'Roupas': 'Roupas, calçados, ajustes, lavanderia, costureira.',
+    'Salário': 'Salário, pagamento, remuneração.',
     'Saúde': 'Consultas, exames, medicamentos, tratamentos, plano de saúde, farmacia, academia, terapia, dentista, esporte.',
     'Taxas': 'Tarifas bancárias, taxas administrativas, multas, anuidades, juros cartão.',
     'Trabalho': 'Ferramentas, materiais, despesas profissionais, taxas.',
     'Transporte': 'Ônibus, metrô, táxi, aplicativo de transporte, combustivel, IPVA, seguro, manutenção, estacionamento, pedágio, lava jato .',
-    'Viagens': 'Passagens, hospedagem, alimentação.',
-    'Salário': 'Salário, pagamento, remuneração.',
-    'Outros': 'Outras receitas.'
+    'Viagens': 'Passagens, hospedagem, alimentação.'
   };
   const fallback = type === 'income' ? 'Receitas relacionadas a esta categoria.' : 'Despesas relacionadas a esta categoria.';
   const root = document.getElementById('modalRoot');
