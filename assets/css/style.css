@@ -244,7 +244,7 @@ button { -webkit-appearance: none; appearance: none; }
 .top {
   background: var(--grad-blue);
   color: #fff;
-  padding: 42px 20px 30px;
+  padding: 47px 20px 30px;
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
   position: relative;
   overflow: hidden;
@@ -1298,7 +1298,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 /* Home reorganizada seguindo a nova hierarquia visual. */
 .home-layout { min-height: calc(100dvh - var(--nav-h)); background: var(--card); }
 .top.home-top {
-  padding: 32px 18px 16px;
+  padding: 37px 18px 16px;
   border-radius: 0;
   box-shadow: none;
 }
@@ -1538,7 +1538,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
     border-radius: 24px;
     box-shadow: var(--shadow-sm);
   }
-  .top.home-top { padding: 42px 30px 24px; }
+  .top.home-top { padding: 47px 30px 24px; }
   .home-header { grid-template-columns: 1fr 40px 40px 40px; gap: 10px; }
   .home-header > [data-go="settings"] { display: none; }
   .home-header h1 { text-align: left; font-size: 1.35rem; }
@@ -1713,7 +1713,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 
 /* Relatórios: resumo circular e participação por categoria. */
 .report-page { min-height: calc(100dvh - var(--nav-h)); background: var(--card); }
-.report-top { padding: 34px 18px 16px; color: #fff; background: var(--grad-blue); }
+.report-top { padding: 39px 18px 16px; color: #fff; background: var(--grad-blue); }
 .report-topbar { display: flex; align-items: center; justify-content: space-between; }
 .report-topbar h1 { margin: 0; font: 700 1.125rem "Plus Jakarta Sans", sans-serif; }
 .report-calendar {
@@ -1892,7 +1892,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 }
 
 .category-detail-page { min-height: calc(100dvh - var(--nav-h)); background: var(--card); }
-.category-detail-top { padding: 30px 14px 14px; color: #fff; background: var(--grad-blue); }
+.category-detail-top { padding: 35px 14px 14px; color: #fff; background: var(--grad-blue); }
 .category-detail-header { display: grid; grid-template-columns: 38px minmax(0, 1fr) 38px; align-items: center; gap: 8px; }
 .category-back, .category-detail-calendar {
   width: 36px;
