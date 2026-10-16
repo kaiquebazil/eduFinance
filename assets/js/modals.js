@@ -457,7 +457,7 @@ function categoryHelpModal(type, categoryIndex) {
   if (!category) return;
   const descriptions = {
     'Acessórios': 'Bolsas, cintos, óculos, joias e outros complementos de uso pessoal.',
-    'Alimentação': 'Refeições e alimentos comprados fora de casa. Use Mercado para compras de supermercado e Lanches para pequenos lanches.',
+    'Alimentação': 'Açougue, mercado, padaria e sacolão.',
     'Animais de Estimação': 'Ração, brinquedos, banho, veterinário e outros cuidados com os animais.',
     'Assinaturas': 'Cobranças recorrentes de streaming, aplicativos, jornais, clubes e serviços digitais.',
     'Carro': 'Manutenção, consertos, lavagem, seguro e outros custos do veículo, exceto combustível, estacionamento e pedágios.',

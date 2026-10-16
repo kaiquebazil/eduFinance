@@ -102,6 +102,10 @@ const categories = {
   ]
 };
 
+Object.values(categories).forEach(list => list.sort((a, b) =>
+  a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+));
+
 /* ==== ESTADO INICIAL (seed) ==== */
 const seed = {
   version: 7,
@@ -118,7 +122,6 @@ const seed = {
   categoryBudgets: {
     Alimentação: 400,
     Casa: 1000,
-    Mercado: 600,
     Saúde: 200,
     Transporte: 300
   },
@@ -128,7 +131,7 @@ const seed = {
   ],
   transactions: [
     { id: 'income-seed', type: 'income', category: 'Salário', icon: '💼', accountId: 'bank', amount: 5200, date: `${currentMonth()}-05`, note: 'Pagamento mensal' },
-    { id: 'market-seed', type: 'expense', category: 'Mercado', icon: '🛒', accountId: 'bank', amount: 248.7, date: `${currentMonth()}-11`, note: 'Supermercado' },
+    { id: 'market-seed', type: 'expense', category: 'Alimentação', icon: '🍽️', accountId: 'bank', amount: 248.7, date: `${currentMonth()}-11`, note: 'Supermercado' },
     { id: 'ride-seed', type: 'expense', category: 'Transporte', icon: '🚕', accountId: 'bank', amount: 32.5, date: `${currentMonth()}-11`, note: 'Corrida' }
   ],
   recurring: []
@@ -212,21 +215,20 @@ function sanitizeState(s) {
 /* ==== MIGRAÇÃO ==== */
 function migrate(old) {
   if (!old) return structuredClone(seed);
-  const sortCategories = Number(old.version || 0) < 5;
   const savedCategories = old.categories || {};
+  const foodSubcategories = new Set(['açougue', 'mercado', 'padaria', 'sacolão']);
   const mergedCategories = Object.fromEntries(['expense', 'income'].map(type => {
-    const saved = Array.isArray(savedCategories[type]) ? savedCategories[type] : [];
+    const saved = (Array.isArray(savedCategories[type]) ? savedCategories[type] : [])
+      .filter(category => !(type === 'expense' && foodSubcategories.has(String(category?.name || '').trim().toLocaleLowerCase('pt-BR'))));
     const names = new Set(saved.map(c => String(c?.name || '').trim().toLocaleLowerCase()));
     return [type, [
       ...saved,
       ...categories[type].filter(c => !names.has(c.name.toLocaleLowerCase()))
     ]];
   }));
-  if (sortCategories) {
-    Object.values(mergedCategories).forEach(list => list.sort((a, b) =>
-      String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' })
-    ));
-  }
+  Object.values(mergedCategories).forEach(list => list.sort((a, b) =>
+    String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' })
+  ));
   const base = {
     ...seed,
     ...old,
