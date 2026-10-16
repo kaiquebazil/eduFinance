@@ -884,6 +884,8 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .category-actions button:hover:not(:disabled) { background: var(--blue-50); color: var(--blue-700); }
 .category-actions button:last-child { color: var(--expense); font-size: 1.25rem; }
 .category-actions button:disabled { opacity: .28; cursor: not-allowed; }
+.category-actions .category-visibility { display: grid; place-items: center; }
+.category-actions .category-visibility svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .category-hidden-title { margin: 18px 0 8px; color: var(--muted); font-size: 0.75rem; font-weight: 700; }
 .category-empty { padding: 16px; color: var(--muted); font-size: 0.75rem; }
 .category-edit-type { margin: -8px 0 16px; color: var(--muted); font-size: 0.8125rem; }

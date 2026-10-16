@@ -443,11 +443,6 @@ function settings() {
   </header>
   <div class="content">
     <div class="setting-list">
-      <button class="setting" data-go="accounts">
-        <span class="s-icon">👛</span>
-        <span><strong>Contas</strong><small>${state.accounts.filter(a => !isCredit(a)).length} cadastrada(s)</small></span>
-        <b class="chev">›</b>
-      </button>
       <button class="setting" data-go="balanceDisplay">
         <span class="s-icon">💰</span>
         <span><strong>Saldo na tela inicial</strong><small>${state.homeBalanceMode === 'remaining' ? 'Saldo que sobrou até agora' : 'Saldo do mês'}</small></span>
@@ -636,7 +631,7 @@ function accounts() {
     <div class="topbar">
       <button class="icon-btn" data-go="settings" aria-label="Voltar">‹</button>
       <span class="period">Suas contas</span>
-      <button class="icon-btn" id="addAccount" aria-label="Adicionar conta">+</button>
+      <span class="icon-btn" aria-hidden="true" style="visibility:hidden">+</span>
     </div>
     <div class="balance-label">Patrimônio disponível</div>
     <div class="balance">${money(total)}</div>
@@ -651,8 +646,6 @@ function accounts() {
           <b class="chev" style="color:var(--muted-2)">›</b>
         </div>`).join('')}
     </div>
-    <button class="save" id="addAccountBtn" style="margin-top:12px;background:#f1f5f9;color:#475569;box-shadow:none">+ Adicionar conta</button>
-
     <section class="credit-system-hidden">
     <h2 class="section-title" style="margin-top:22px">Cartões de crédito</h2>
     ${cards.length ? `<div class="cards">
@@ -805,10 +798,8 @@ function categoriesPage() {
         <span class="s-icon">${escapeHtml(c.icon)}</span>
         <span class="category-label"><strong>${escapeHtml(c.name)}</strong><small>${c.hidden ? 'Oculta' : type === 'income' ? 'Receita' : 'Despesa'}</small></span>
         <div class="category-actions">
-          <button type="button" data-category-move="${type}" data-category-index="${index}" data-direction="-1" aria-label="Mover ${escapeHtml(c.name)} para cima" ${index === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" data-category-move="${type}" data-category-index="${index}" data-direction="1" aria-label="Mover ${escapeHtml(c.name)} para baixo" ${index === cats.length - 1 ? 'disabled' : ''}>↓</button>
           <button type="button" data-edit-category="${type}" data-category-index="${index}" aria-label="Editar ${escapeHtml(c.name)}">✎</button>
-          <button type="button" data-toggle-category="${type}" data-category-index="${index}" aria-label="${c.hidden ? 'Reativar' : 'Ocultar'} ${escapeHtml(c.name)}" ${!c.hidden && cats.filter(item => !item.hidden).length <= 1 ? 'disabled' : ''}>${c.hidden ? '↺' : '◉'}</button>
+          <button type="button" class="category-visibility" data-toggle-category="${type}" data-category-index="${index}" aria-label="${c.hidden ? 'Reativar' : 'Ocultar'} ${escapeHtml(c.name)}" ${!c.hidden && cats.filter(item => !item.hidden).length <= 1 ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${c.hidden ? '<path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A11.8 11.8 0 0 1 12 5c5 0 8.3 4.5 9 7-.3 1-1.1 2.3-2.2 3.4M6.2 6.2C3.8 7.8 2.3 10.3 2 12c.7 2.5 4 7 10 7 1.1 0 2.1-.2 3-.5"/>' : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'}</svg></button>
           <button type="button" data-remove-category="${type}" data-category-name="${escapeHtml(c.name)}" aria-label="Excluir ${escapeHtml(c.name)}">×</button>
         </div>
       </div>`).join('');

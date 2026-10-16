@@ -237,17 +237,6 @@ document.addEventListener('click', e => {
     return;
   }
 
-  const moveCategory = e.target.closest('[data-category-move]');
-  if (moveCategory) {
-    const list = state.categories[moveCategory.dataset.categoryMove];
-    const index = Number(moveCategory.dataset.categoryIndex);
-    const target = index + Number(moveCategory.dataset.direction);
-    if (target < 0 || target >= list.length) return;
-    [list[index], list[target]] = [list[target], list[index]];
-    persist(); render();
-    return;
-  }
-
   const editAcc = e.target.closest('[data-edit-account]');
   if (editAcc) { accountModal(editAcc.dataset.editAccount); return; }
 

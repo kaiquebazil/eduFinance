@@ -11,6 +11,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   const root      = document.getElementById('modalRoot');
   const cards     = state.accounts.filter(isCredit);
   const nonCredit = state.accounts.filter(a => !isCredit(a));
+  const defaultAccountId = nonCredit[0]?.id || 'bank';
   const hasCards  = cards.length > 0;
 
   /* ── helper show/hide sem recriar elementos ───────────────────── */
@@ -48,15 +49,6 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         <label class="field"><span>Categoria</span>
           <div class="categories" id="_ms_cats"></div>
         </label>
-
-        <!-- conta de débito -->
-        <div id="_ms_acct">
-          <label class="field"><span>Conta</span>
-            <select name="accountId">
-              ${nonCredit.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('')}
-            </select>
-          </label>
-        </div>
 
         <!-- cartão + parcelas (name="cardId" para não conflitar com accountId) -->
         <div id="_ms_credit" class="credit-system-hidden">
@@ -164,7 +156,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
       state.transactions.push(...entries);
       state.selectedMonth = monthOf(entries[0].date);
     } else {
-      const accountId = f.get('accountId');
+      const accountId = defaultAccountId;
       state.transactions.push({
         id: makeId(), type, amount, date, note: f.get('note'),
         category: selected.name, icon: selected.icon, accountId
@@ -522,8 +514,14 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   $c('#_catForm').addEventListener('submit', e => {
     e.preventDefault();
     const name = new FormData(e.target).get('name').trim();
+    const normalizeName = value => String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('pt-BR')
+      .replace(/[^\p{L}\p{N}]/gu, '');
+    const normalizedName = normalizeName(name);
     const duplicate = state.categories[type].some((c, index) =>
-      index !== editIndex && c.name.toLocaleLowerCase() === name.toLocaleLowerCase()
+      index !== editIndex && normalizeName(c.name) === normalizedName
     );
     if (!name) return toast('Informe um nome para a categoria.');
     if (duplicate)
@@ -551,6 +549,9 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
       }
     } else {
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false });
+      state.categories[type].sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+      );
     }
     persist(); closeModal(); render(); toast(editing ? 'Categoria atualizada' : 'Categoria criada');
     if (!editing) onCreated?.(name);
