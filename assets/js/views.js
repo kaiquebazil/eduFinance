@@ -168,7 +168,7 @@ function home() {
     </div>
   </header>
   <div class="content home-content ${state.hideHomeCards ? 'home-content-cards-hidden' : ''}">
-    <aside class="home-cards-column credit-system-hidden">
+    <aside class="home-cards-column">
     <div class="home-finance-heading">
       <h2>Cartões</h2>
       <button type="button" id="toggleHomeCards" aria-expanded="${!state.hideHomeCards}" aria-label="${state.hideHomeCards ? 'Mostrar resumos dos cartões' : 'Ocultar resumos dos cartões'}">
@@ -443,6 +443,11 @@ function settings() {
   </header>
   <div class="content">
     <div class="setting-list">
+      <button class="setting" data-go="accounts">
+        <span class="s-icon">💳</span>
+        <span><strong>Cartões de crédito</strong><small>${state.accounts.filter(isCredit).length} cadastrado(s)</small></span>
+        <b class="chev">›</b>
+      </button>
       <button class="setting" data-go="balanceDisplay">
         <span class="s-icon">💰</span>
         <span><strong>Saldo na tela inicial</strong><small>${state.homeBalanceMode === 'remaining' ? 'Saldo que sobrou até agora' : 'Saldo do mês'}</small></span>
@@ -478,12 +483,12 @@ function settings() {
         <span><strong>${window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone ? 'EduFinance instalado' : 'Baixar o app'}</strong><small>Adicionar à tela inicial</small></span>
         <b class="chev">›</b>
       </button>
-      <button class="setting credit-system-hidden" data-go="installments">
+      <button class="setting" data-go="installments">
         <span class="s-icon">💳</span>
         <span><strong>Compras parceladas</strong><small>Parcelas em aberto</small></span>
         <b class="chev">›</b>
       </button>
-      <button class="setting credit-system-hidden" data-go="invoices">
+      <button class="setting" data-go="invoices">
         <span class="s-icon">🧾</span>
         <span><strong>Faturas do cartão</strong><small>Pagar faturas abertas</small></span>
         <b class="chev">›</b>
@@ -646,7 +651,7 @@ function accounts() {
           <b class="chev" style="color:var(--muted-2)">›</b>
         </div>`).join('')}
     </div>
-    <section class="credit-system-hidden">
+    <section>
     <h2 class="section-title" style="margin-top:22px">Cartões de crédito</h2>
     ${cards.length ? `<div class="cards">
       ${cards.map(c => {

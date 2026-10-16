@@ -35,7 +35,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
       <input class="amount-input" name="amount" inputmode="decimal" placeholder="R$ 0,00" data-money required>
 
       <!-- forma de pagamento (só aparece em despesa com cartão) -->
-      <div id="_ms_payment" class="credit-system-hidden">
+      <div id="_ms_payment">
         <label class="field"><span>Forma de pagamento</span>
           <div class="type-switch" style="grid-template-columns:1fr 1fr">
             <button type="button" data-pay="account" class="selected">Conta</button>
@@ -51,7 +51,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         </label>
 
         <!-- cartão + parcelas (name="cardId" para não conflitar com accountId) -->
-        <div id="_ms_credit" class="credit-system-hidden">
+        <div id="_ms_credit">
           <label class="field"><span>Cartão</span>
             <select name="cardId">
               ${cards.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('')}
