@@ -456,46 +456,32 @@ function categoryHelpModal(type, categoryIndex) {
   const category = state.categories[type]?.[categoryIndex];
   if (!category) return;
   const descriptions = {
-    'Acessórios': 'Bolsas, cintos, óculos, joias e outros complementos de uso pessoal.',
+    'Acessórios': 'Bolsas, cintos, óculos, joias, pelicula e capas para celular.',
     'Alimentação': 'Açougue, mercado, padaria e sacolão.',
-    'Animais de Estimação': 'Ração, brinquedos, banho, veterinário e outros cuidados com os animais.',
-    'Assinaturas': 'Cobranças recorrentes de streaming, aplicativos, jornais, clubes e serviços digitais.',
-    'Carro': 'Manutenção, consertos, lavagem, seguro e outros custos do veículo, exceto combustível, estacionamento e pedágios.',
-    'Combustível': 'Gasolina, etanol, diesel ou recarga de veículo elétrico.',
-    'Compras': 'Compras gerais que não se encaixam melhor em uma categoria específica, como Acessórios ou Roupas.',
-    'Cuidados Pessoais': 'Cabeleireiro, salão, cosméticos e produtos de higiene e cuidado pessoal.',
-    'Datas Comemorativas': 'Gastos com festas, comemorações, decoração e eventos de datas especiais.',
-    'Doações': 'Contribuições e doações feitas a pessoas, instituições ou causas.',
-    'Doacoes': 'Contribuições e doações feitas a pessoas, instituições ou causas.',
-    'Dízimos': 'Dízimos e contribuições religiosas.',
-    'Diversos': 'Despesas ocasionais que não se encaixam em nenhuma outra categoria.',
-    'Educação': 'Mensalidades, cursos, livros, material escolar e outras despesas de estudo.',
-    'Empréstimos': 'Parcelas ou pagamentos de empréstimos e financiamentos.',
-    'Entretenimento': 'Cinema, shows, jogos, eventos e outras atividades de entretenimento.',
-    'Estacionamento/Pedágios': 'Estacionamentos, zonas azuis, pedágios e tarifas de rodovia.',
-    'Estacionamentos/Pedágios': 'Estacionamentos, zonas azuis, pedágios e tarifas de rodovia.',
-    'Filhos': 'Despesas dos filhos, como mesada, atividades, cuidados e itens infantis.',
-    'Investimento': 'Aportes em investimentos, aplicações financeiras e ativos.',
-    'Lanches': 'Cafés, salgados, doces e pequenos lanches.',
-    'Lar': 'Utensílios, decoração, pequenos reparos e itens para a casa.',
-    'Lazer': 'Passeios, viagens de lazer, parques e atividades recreativas.',
-    'Mercado': 'Compras de supermercado, mercearia e itens de consumo doméstico.',
-    'Moradia': 'Aluguel, condomínio, prestação da casa e custos fixos de habitação.',
-    'Ofertas': 'Ofertas e contribuições religiosas além dos dízimos.',
-    'Presentes': 'Presentes comprados para outras pessoas.',
-    'Roupas': 'Roupas, calçados e ajustes ou consertos de vestuário.',
-    'Saúde': 'Consultas, exames, medicamentos, tratamentos e plano de saúde.',
-    'Taxas': 'Tarifas bancárias, taxas administrativas, multas e encargos.',
-    'Telefone': 'Plano de celular, recargas, telefone fixo e serviços de comunicação.',
-    'Trabalho': 'Despesas relacionadas ao trabalho, como transporte profissional, ferramentas e materiais.',
-    'Transporte': 'Ônibus, metrô, táxi, aplicativo de transporte e outras passagens.',
-    'Viagens': 'Passagens, hospedagem, alimentação e despesas durante viagens.',
-    'Salário': 'Salário, pagamento mensal e remuneração pelo trabalho.',
-    'Outros': 'Receitas que não se encaixam em outra categoria.'
+    'Animais de Estimação': 'Ração, veterinário, banho e tosa, brinquedos, petshop.',
+    'Assinaturas': 'Streaming, aplicativos, jornais, clubes, plano de celular.',
+    'Cuidados Pessoais': 'Cabeleireiro, salão, cosméticos, higiene, maquiagem, manicure, estetica, skincare.',
+    'Datas Comemorativas': 'Festas, decoração, comemorações, vaquinhas, feriados.',
+    'Doações': 'Contribuições, instituições, causas sociais, cesta básica.',
+    'Educação': 'Mensalidades, cursos, livros, material escolar, consultorias, treinamentos, uniformes.',
+    'Empréstimos': 'Parcelas, empréstimos, financiamentos.',
+    'Estacionamento/Pedágios': 'Estacionamento, zona azul, pedágios.',
+    'Estacionamentos/Pedágios': 'Estacionamento, zona azul, pedágios.',
+    'Filhos': 'Mesada, atividades, cuidados, itens infantis.',
+    'Lanches': 'Cafés, salgados, doces.',
+    'Lazer': 'Passeios, parques, atividades recreativas, cinema, clubes, pesca.',
+    'Moradia': 'Aluguel ou Financiamento, IPTU, conta de energia, gas, internet, agua, diariasta, condomínio, prestação da casa,.',
+    'Presentes': 'Presentes, lembranças.',
+    'Roupas': 'Roupas, calçados, ajustes, lavanderia, costureira.',
+    'Saúde': 'Consultas, exames, medicamentos, tratamentos, plano de saúde, farmacia, academia, terapia, dentista, esporte.',
+    'Taxas': 'Tarifas bancárias, taxas administrativas, multas, anuidades, juros cartão.',
+    'Trabalho': 'Ferramentas, materiais, despesas profissionais, taxas.',
+    'Transporte': 'Ônibus, metrô, táxi, aplicativo de transporte, combustivel, IPVA, seguro, manutenção, estacionamento, pedágio, lava jato .',
+    'Viagens': 'Passagens, hospedagem, alimentação.',
+    'Salário': 'Salário, pagamento, remuneração.',
+    'Outros': 'Outras receitas.'
   };
-  const fallback = type === 'income'
-    ? `Registre aqui as receitas relacionadas a ${category.name}.`
-    : `Registre aqui despesas relacionadas a ${category.name}.`;
+  const fallback = type === 'income' ? 'Receitas relacionadas a esta categoria.' : 'Despesas relacionadas a esta categoria.';
   const root = document.getElementById('modalRoot');
   root.innerHTML = `<div class="modal-backdrop"><section class="modal dialog-modal" role="dialog" aria-modal="true" aria-labelledby="categoryHelpTitle">
     <div class="handle"></div>
@@ -604,10 +590,10 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
       }
     } else {
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false });
-      state.categories[type].sort((a, b) =>
-        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
-      );
     }
+    state.categories[type].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+    );
     persist(); closeModal(); render(); toast(editing ? 'Categoria atualizada' : 'Categoria criada');
     if (!editing) onCreated?.(name);
   });

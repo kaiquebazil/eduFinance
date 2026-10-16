@@ -81,7 +81,6 @@ const categories = {
     { name: 'Doações', icon: '🤲' },
     { name: 'Empréstimos', icon: '🤝' },
     { name: 'Moradia', icon: '🏠' },
-    { name: 'Diversos', icon: '💼' },
     { name: 'Educação', icon: '🎓' },
     { name: 'Estacionamentos/Pedágios', icon: '🅿️' },
     { name: 'Filhos', icon: '👨‍👩‍👧' },
