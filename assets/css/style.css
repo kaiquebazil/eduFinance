@@ -1358,17 +1358,15 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   font-variant-numeric: tabular-nums;
 }
 .home-summary .home-month > span { text-transform: none; }
-.home-summary .home-month > b { font-size: 1.0625rem; text-transform: capitalize; }
-.month-arrows { display: inline-flex; gap: 2px; margin-left: 2px; vertical-align: 1px; }
-.month-arrows button {
-  width: 17px;
-  height: 18px;
+.home-summary .home-month > b { display: flex; align-items: center; gap: 10px; font-size: 1.0625rem; text-transform: capitalize; }
+.month-label { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-transform: inherit; cursor: pointer; }
+.month-arrow {
   padding: 0;
   border: 0;
   background: transparent;
   color: rgba(255,255,255,.8);
   font-size: 1.0625rem;
-  line-height: 16px;
+  line-height: 26px;
   cursor: pointer;
 }
 .home-content { padding: 0 0 12px; }

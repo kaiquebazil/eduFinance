@@ -178,6 +178,8 @@ document.addEventListener('click', e => {
     persist(); render(); return;
   }
 
+  if (e.target.closest('[data-open-month-picker]')) { monthPickerModal(); return; }
+
   const filterBtn = e.target.closest('[data-filter]');
   if (filterBtn) { statsFilter = filterBtn.dataset.filter; render(); return; }
 

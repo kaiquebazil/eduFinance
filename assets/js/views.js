@@ -161,7 +161,7 @@ function home() {
       <button class="home-icon" id="monthPickerBtn" aria-label="Escolher mês"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button>
     </div>
     <div class="home-summary">
-      <div class="home-month"><span>${monthYear}</span><b>${monthName}<span class="month-arrows"><button data-month="-1" aria-label="Mês anterior">‹</button><button data-month="1" aria-label="Próximo mês">›</button></span></b></div>
+      <div class="home-month"><span>${monthYear}</span><b><button class="month-arrow" data-month="-1" aria-label="Mês anterior">‹</button><button class="month-label" data-open-month-picker>${monthName}</button><button class="month-arrow" data-month="1" aria-label="Próximo mês">›</button></b></div>
       <div><span>Despesas</span><b>${money(t.expense)}</b></div>
       <div><span>Receitas</span><b>${money(t.income)}</b></div>
       <div><span>${state.homeBalanceMode === 'remaining' ? 'Saldo restante' : 'Saldo do mês'}</span><b>${money(balance)}</b></div>
