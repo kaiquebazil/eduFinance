@@ -376,7 +376,8 @@ function categoryDetail() {
 
 function budget() {
   const t    = totals();
-  const actualUsed = state.budget ? t.expense / state.budget * 100 : 0;
+  const monthlyBudget = Object.values(state.categoryBudgets).reduce((sum, amount) => sum + Number(amount || 0), 0);
+  const actualUsed = monthlyBudget ? t.expense / monthlyBudget * 100 : 0;
   const used = Math.min(actualUsed, 100);
 
   const byCategory = {};
@@ -396,7 +397,7 @@ function budget() {
   return `<header class="top">
     <div class="topbar">${monthChanger()}</div>
     <div class="balance-label">Orçamento mensal</div>
-    <div class="balance">${money(state.budget)}</div>
+    <div class="balance">${money(monthlyBudget)}</div>
   </header>
   <div class="content">
     <h2 class="section-title">Seu orçamento</h2>
@@ -408,10 +409,10 @@ function budget() {
       <div class="budget-progress ${budgetHeatClass(actualUsed)}"><i style="width:${used}%"></i></div>
       <div class="row" style="font-size: 0.8125rem;color:var(--muted)">
         <span>${money(t.expense)} utilizado</span>
-        <span>${money(Math.max(state.budget - t.expense, 0))} restante</span>
+        <span>${money(Math.max(monthlyBudget - t.expense, 0))} restante</span>
       </div>
     </div>
-    <button class="save" id="editBudget" style="margin-top:12px">Definir orçamento geral</button>
+    <button class="save" id="addCategoryBudget" style="margin-top:12px">Adicionar meta por categoria</button>
 
     <div class="budget-goals-heading"><h2 class="section-title">Metas por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
     ${goals.length ? `<div class="setting-list">
@@ -426,7 +427,6 @@ function budget() {
           <b class="chev">›</b>
         </div>`).join('')}
     </div>` : '<div class="empty">Nenhuma meta por categoria definida.</div>'}
-    <button class="save budget-add-goal" id="addCategoryBudget">Adicionar meta por categoria</button>
   </div>`;
 }
 

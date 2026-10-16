@@ -1,10 +1,10 @@
 /* Criação e edição de lançamentos, contas, cartões e categorias. */
 /* ==== MODAIS ==== */
 
-function modal() {
+function modal(initialType = 'expense', selectedCategoryName = '') {
   /* ── estado interno ───────────────────────────────────────────── */
-  let type         = 'expense';
-  let selected     = selectableCategories('expense')[0];
+  let type         = initialType;
+  let selected     = selectableCategories(initialType).find(c => c.name === selectedCategoryName) || selectableCategories(initialType)[0];
   let payment      = 'account';
   let installments = 1;
 
@@ -88,6 +88,7 @@ function modal() {
         <input name="date" type="date" value="${today()}">
       </label>
       <button class="save">Salvar lançamento</button>
+      <button type="button" class="add-category-from-launch" id="addCategoryFromLaunch">Adicionar nova categoria</button>
     </form>
   </div>`;
 
@@ -130,6 +131,8 @@ function modal() {
     selected = selectableCategories(type)[0];
     updateView();
   }));
+
+  root.querySelector('#addCategoryFromLaunch').addEventListener('click', () => categoryModal(type, null, name => modal(type, name)));
 
   root.querySelectorAll('[data-pay]').forEach(b => b.addEventListener('click', () => {
     payment = b.dataset.pay;
@@ -457,7 +460,7 @@ function inputModal({ title, label, placeholder, value = '', action, money: isMo
   root.querySelector('#modalValue').focus();
 }
 
-function categoryModal(initialType = 'expense', editIndex = null) {
+function categoryModal(initialType = 'expense', editIndex = null, onCreated = null) {
   const root = document.getElementById('modalRoot');
   let type = initialType;
   const editing = Number.isInteger(editIndex);
@@ -550,6 +553,7 @@ function categoryModal(initialType = 'expense', editIndex = null) {
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false });
     }
     persist(); closeModal(); render(); toast(editing ? 'Categoria atualizada' : 'Categoria criada');
+    if (!editing) onCreated?.(name);
   });
 
   updateCatView();
