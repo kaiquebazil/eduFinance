@@ -175,7 +175,7 @@ function sanitizeState(s) {
     initialBalance: num(a.initialBalance),
     kind: ['cash', 'bank', 'credit'].includes(a.kind) ? a.kind : 'bank',
     ...(a.kind === 'credit'
-      ? { limit: num(a.limit), closingDay: num(a.closingDay) || 25, dueDay: num(a.dueDay) || 5 }
+      ? { limit: num(a.limit), brand: ['Mastercard', 'Visa', 'Amex', 'Diners', 'Elo', 'Hipercard', 'Outros'].includes(a.brand) ? a.brand : 'Outros', closingDay: num(a.closingDay) || 25, dueDay: num(a.dueDay) || 5 }
       : {})
   }));
 
@@ -190,6 +190,7 @@ function sanitizeState(s) {
         icon:     str(t.icon, 8),
         note:     str(t.note, 200)
       };
+      if (o.borrowedTo != null) o.borrowedTo = str(o.borrowedTo, 80);
       ['accountId','fromAccountId','toAccountId','cardId','groupId','recurringId'].forEach(k => {
         if (o[k] != null) o[k] = id(o[k]);
       });
@@ -365,19 +366,20 @@ function invoiceMonthFor(account, date) {
   return day <= (account.closingDay || 25) ? m : addMonths(m, 1);
 }
 
-function buildInstallments({ account, category, icon, note, total, date, installments }) {
+function buildInstallments({ account, category, icon, note, total, date, installments, firstDueDate, borrowedTo }) {
   const entries = [];
   const totalCents = Math.round(total * 100);
   const baseCents  = Math.floor(totalCents / installments);
   let restCents    = totalCents - baseCents * installments;
-  const firstInvoice = invoiceMonthFor(account, date);
+  const firstInvoice = firstDueDate ? monthOf(firstDueDate) : invoiceMonthFor(account, date);
+  const firstDueDay = Number((firstDueDate || '').slice(8, 10)) || Number(account.dueDay || 5);
 
   for (let i = 1; i <= installments; i++) {
     const cents = i === installments ? baseCents + restCents : baseCents;
     restCents = 0;
     const amount       = cents / 100;
     const invoiceMonth = addMonths(firstInvoice, i - 1);
-    const dueDay       = Math.min(account.dueDay || 5, lastDayOfMonth(invoiceMonth));
+    const dueDay       = Math.min(firstDueDay, lastDayOfMonth(invoiceMonth));
     const dueDate      = `${invoiceMonth}-${String(dueDay).padStart(2, '0')}`;
 
     entries.push({
@@ -386,6 +388,7 @@ function buildInstallments({ account, category, icon, note, total, date, install
       note: note ? `${note} (${i}/${installments})` : `Parcela ${i}/${installments}`,
       installment: { current: i, total: installments, purchaseDate: date, totalAmount: total },
       invoiceMonth,
+      borrowedTo: borrowedTo || '',
       groupId: `g-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`
     });
   }

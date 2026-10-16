@@ -13,6 +13,13 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   const nonCredit = state.accounts.filter(a => !isCredit(a));
   const defaultAccountId = nonCredit[0]?.id || 'bank';
   const hasCards  = cards.length > 0;
+  let firstDueDateTouched = false;
+  const defaultFirstDueDate = card => {
+    const purchaseDate = root.querySelector('[name=date]')?.value || today();
+    const month = addMonths(monthOf(purchaseDate), 1);
+    const day = Math.min(Number(card?.dueDay || 5), lastDayOfMonth(month));
+    return `${month}-${String(day).padStart(2, '0')}`;
+  };
 
   /* ── helper show/hide sem recriar elementos ───────────────────── */
   const $  = sel => root.querySelector(sel);
@@ -53,8 +60,8 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         <!-- cartão + parcelas (name="cardId" para não conflitar com accountId) -->
         <div id="_ms_credit">
           <label class="field"><span>Cartão</span>
-            <select name="cardId">
-              ${cards.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('')}
+            <select name="cardId" id="_ms_card">
+              ${cards.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)} · ${escapeHtml(a.brand || 'Outros')}</option>`).join('')}
             </select>
           </label>
           <label class="field"><span>Parcelas</span>
@@ -62,6 +69,8 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
               ${Array.from({ length: 24 }, (_, i) => i + 1).map(n => `<option value="${n}">${n}x</option>`).join('')}
             </select>
           </label>
+          <label class="field"><span>Data do primeiro vencimento</span><input name="firstDueDate" id="_ms_first_due" type="date" value="${cards.length ? defaultFirstDueDate(cards[0]) : today()}" required></label>
+          <label class="field"><span>Cartão emprestado para (opcional)</span><input name="borrowedTo" maxlength="80" placeholder="Ex.: minha irmã"></label>
         </div>
 
         <!-- repetir todo mês -->
@@ -131,6 +140,14 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     updateView();
   }));
 
+  $('[name=firstDueDate]').addEventListener('input', () => { firstDueDateTouched = true; });
+  $('[name=cardId]').addEventListener('change', () => {
+    if (!firstDueDateTouched) $('[name=firstDueDate]').value = defaultFirstDueDate(cards.find(card => card.id === $('[name=cardId]').value));
+  });
+  $('[name=date]').addEventListener('change', () => {
+    if (!firstDueDateTouched) $('[name=firstDueDate]').value = defaultFirstDueDate(cards.find(card => card.id === $('[name=cardId]').value));
+  });
+
   $('[name=installments]').addEventListener('change', e => {
     installments = Number(e.target.value);
   });
@@ -149,9 +166,12 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     if (payment === 'credit' && type === 'expense') {
       const card    = state.accounts.find(a => a.id === f.get('cardId'));
       const n       = Number(f.get('installments')) || 1;
+      const firstDueDate = f.get('firstDueDate');
+      if (!firstDueDate || firstDueDate < date) return toast('O primeiro vencimento não pode ser anterior à compra.');
       const entries = buildInstallments({
         account: card, category: selected.name, icon: selected.icon,
-        note: f.get('note'), total: amount, date, installments: n
+        note: f.get('note'), total: amount, date, installments: n, firstDueDate,
+        borrowedTo: String(f.get('borrowedTo') || '').trim()
       });
       state.transactions.push(...entries);
       state.selectedMonth = monthOf(entries[0].date);
@@ -604,13 +624,15 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
 function cardModal(existingId = null) {
   const root = document.getElementById('modalRoot');
   const card = existingId ? state.accounts.find(a => a.id === existingId) : null;
+  const brands = ['Mastercard', 'Visa', 'Amex', 'Diners', 'Elo', 'Hipercard', 'Outros'];
 
   root.innerHTML = `
     <div class="modal-backdrop">
       <form class="modal dialog-modal" id="cardForm">
         <div class="handle"></div>
         <h2 class="modal-title">${card ? 'Editar cartão' : 'Novo cartão de crédito'}</h2>
-        <label class="field"><span>Nome do cartão</span><input name="name" placeholder="Ex.: Nubank" value="${card ? escapeHtml(card.name) : ''}" required autofocus></label>
+        <label class="field"><span>Banco / nome do cartão</span><input name="name" placeholder="Ex.: Nubank" value="${card ? escapeHtml(card.name) : ''}" required autofocus></label>
+        <label class="field"><span>Bandeira</span><select name="brand">${brands.map(brand => `<option value="${brand}" ${card?.brand === brand || (!card?.brand && brand === 'Outros') ? 'selected' : ''}>${brand}</option>`).join('')}</select></label>
         <label class="field"><span>Limite (R$)</span><input name="limit" inputmode="decimal" data-money placeholder="R$ 0,00" value="${card ? money(card.limit) : ''}" required></label>
         <label class="field"><span>Dia de fechamento</span><input name="closingDay" type="number" min="1" max="31" value="${card ? card.closingDay : 25}" required></label>
         <label class="field"><span>Dia de vencimento</span><input name="dueDay" type="number" min="1" max="31" value="${card ? card.dueDay : 5}" required></label>
@@ -641,7 +663,7 @@ function cardModal(existingId = null) {
 
     if (card) {
       Object.assign(card, {
-        name: f.get('name').trim(), limit,
+        name: f.get('name').trim(), brand: f.get('brand'), limit,
         closingDay: Number(f.get('closingDay')),
         dueDay:     Number(f.get('dueDay'))
       });
@@ -649,7 +671,7 @@ function cardModal(existingId = null) {
     } else {
       state.accounts.push({
         id: makeId(), name: f.get('name').trim(), icon: '💳',
-        initialBalance: 0, kind: 'credit', limit,
+        initialBalance: 0, kind: 'credit', brand: f.get('brand'), limit,
         closingDay: Number(f.get('closingDay')),
         dueDay:     Number(f.get('dueDay'))
       });

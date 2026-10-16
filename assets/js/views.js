@@ -74,7 +74,7 @@ function transactionHTML(t) {
     const c = state.accounts.find(a => a.id === t.cardId);
     meta = `Pagamento fatura ${c ? escapeHtml(c.icon) + ' ' + escapeHtml(c.name) : ''}`;
   } else if (isCardTx) {
-    meta = `${escapeHtml(card.icon)} ${escapeHtml(card.name)}${t.note ? ` · ${escapeHtml(t.note)}` : ''}`;
+    meta = `${escapeHtml(card.icon)} ${escapeHtml(card.name)}${t.borrowedTo ? ` · Emprestado para ${escapeHtml(t.borrowedTo)}` : ''}${t.note ? ` · ${escapeHtml(t.note)}` : ''}`;
   } else {
     meta = `${escapeHtml(accountName(t.accountId))}${t.note ? ` · ${escapeHtml(t.note)}` : ''}`;
   }
@@ -115,22 +115,17 @@ function home() {
   const balance      = state.homeBalanceMode === 'remaining'
     ? state.accounts.reduce((sum, a) => sum + accountBalance(a), 0)
     : t.income - t.expense;
-  const availableCredit = cards.reduce((sum, card) => sum + Math.max(Number(card.limit || 0) - creditUsed(card), 0), 0);
   const nextInvoice = cards.flatMap(card => {
     const months = [...new Set(state.transactions
       .filter(tx => tx.type === 'expense' && tx.accountId === card.id)
       .map(tx => tx.invoiceMonth || monthOf(tx.date)))];
     return months.map(month => ({
       card, month, remaining: invoiceRemaining(card, month),
-      dueDate: `${month}-${String(Math.min(card.dueDay || 5, lastDayOfMonth(month))).padStart(2, '0')}`
+      dueDate: creditInvoice(card, month).map(tx => tx.date).sort()[0]
+        || `${month}-${String(Math.min(card.dueDay || 5, lastDayOfMonth(month))).padStart(2, '0')}`
     }));
   }).filter(invoice => invoice.remaining > 0)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
-
-  const alertCards = cards.filter(c => {
-    const used = creditUsed(c);
-    return c.limit && used / c.limit >= 0.8;
-  });
 
   const monthDate = new Date(`${state.selectedMonth}-01T12:00:00`);
   const monthName = monthDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
@@ -167,8 +162,8 @@ function home() {
       <div><span>${state.homeBalanceMode === 'remaining' ? 'Saldo restante' : 'Saldo do mês'}</span><b>${money(balance)}</b></div>
     </div>
   </header>
-  <div class="content home-content ${state.hideHomeCards ? 'home-content-cards-hidden' : ''}">
-    <aside class="home-cards-column">
+  <div class="content home-content ${state.hideHomeCards || !cards.length ? 'home-content-cards-hidden' : ''}">
+    <aside class="home-cards-column" ${cards.length ? '' : 'hidden'}>
     <div class="home-finance-heading">
       <h2>Cartões</h2>
       <button type="button" id="toggleHomeCards" aria-expanded="${!state.hideHomeCards}" aria-label="${state.hideHomeCards ? 'Mostrar resumos dos cartões' : 'Ocultar resumos dos cartões'}">
@@ -177,23 +172,12 @@ function home() {
       </button>
     </div>
     ${state.hideHomeCards ? '' : `<div class="home-finance-cards">
-      <button type="button" class="home-finance-card" data-go="accounts">
-        <span>Disponível nos cartões</span>
-        <strong>${money(availableCredit)}</strong>
-      </button>
-      <button type="button" class="home-finance-card" data-go="invoices">
+      <button type="button" class="home-finance-card" data-go="invoices" style="grid-column:1/-1">
         <span>${nextInvoice ? (nextInvoice.dueDate < today() ? 'Fatura vencida' : 'Próximo vencimento') : 'Faturas abertas'}</span>
         <strong>${nextInvoice ? money(nextInvoice.remaining) : 'Tudo em dia'}</strong>
         <small>${nextInvoice ? `${escapeHtml(nextInvoice.card.name)} · vence ${dateFull(nextInvoice.dueDate)}` : 'Nenhuma fatura pendente'}</small>
       </button>
     </div>`}
-    ${alertCards.map(c => {
-      const used = creditUsed(c);
-      const pct  = Math.round(used / c.limit * 100);
-      return `<div class="alert-banner home-alert ${pct >= 95 ? 'danger' : ''}">
-        <span class="home-alert-icon" aria-hidden="true">!</span><span><b>${escapeHtml(c.name)}</b> está em ${pct}% do limite (${money(used)} de ${money(c.limit)})</span>
-      </div>`;
-    }).join('')}
     </aside>
 
     <section class="home-movements">
@@ -376,9 +360,6 @@ function categoryDetail() {
 
 function budget() {
   const t    = totals();
-  const monthlyBudget = Object.values(state.categoryBudgets).reduce((sum, amount) => sum + Number(amount || 0), 0);
-  const actualUsed = monthlyBudget ? t.expense / monthlyBudget * 100 : 0;
-  const used = Math.min(actualUsed, 100);
 
   const byCategory = {};
   inMonth().filter(x => x.type === 'expense').forEach(x => {
@@ -393,6 +374,9 @@ function budget() {
     })
     .filter(Boolean)
     .sort((a, b) => b.progress - a.progress);
+  const monthlyBudget = goals.reduce((sum, goal) => sum + goal.amount, 0);
+  const actualUsed = monthlyBudget ? t.expense / monthlyBudget * 100 : 0;
+  const used = Math.min(actualUsed, 100);
 
   return `<header class="top">
     <div class="topbar">${monthChanger()}</div>
@@ -664,7 +648,7 @@ function accounts() {
         <div class="info-card" style="flex-direction:column;align-items:stretch;gap:10px" data-edit-card="${escapeHtml(c.id)}">
           <div style="display:flex;align-items:center;gap:12px">
             <div class="info-icon">${escapeHtml(c.icon)}</div>
-            <div style="flex:1"><strong>${escapeHtml(c.name)}</strong><small>Fecha dia ${c.closingDay} · Vence dia ${c.dueDay}</small></div>
+            <div style="flex:1"><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.brand || 'Outros')} · Fecha dia ${c.closingDay} · Vence dia ${c.dueDay}</small></div>
           </div>
           <div class="budget-progress ${pct >= 95 ? 'danger' : pct >= 80 ? 'warn' : ''}"><i style="width:${pct}%"></i></div>
           <div class="row" style="font-size: 0.75rem;color:var(--muted)">
@@ -694,6 +678,7 @@ function installmentsPage() {
         purchasesMap[key] = {
           category: t.category, icon: t.icon,
           note: (t.note || '').replace(/\s\(\d+\/\d+\)$/, ''),
+          borrowedTo: t.borrowedTo || '',
           accountId: t.accountId,
           purchaseDate: t.installment.purchaseDate,
           totalAmount: t.installment.totalAmount,
@@ -729,6 +714,7 @@ function installmentsPage() {
           <span style="color:var(--muted);font-size: 0.75rem">${card ? escapeHtml(card.icon) + ' ' + escapeHtml(card.name) : ''}</span>
         </div>
         ${p.note ? `<small style="color:var(--muted);font-size: 0.75rem;display:block;margin-top:3px">${escapeHtml(p.note)}</small>` : ''}
+        ${p.borrowedTo ? `<small style="color:var(--muted);font-size: 0.75rem;display:block;margin-top:3px">Emprestado para ${escapeHtml(p.borrowedTo)}</small>` : ''}
         <div class="row" style="margin-top:10px;font-size: 0.8125rem">
           <span>${money(p.totalAmount)} em ${p.total}x</span>
           <b>${p.paid}/${p.total} pagas</b>
