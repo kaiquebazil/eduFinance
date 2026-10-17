@@ -56,6 +56,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         <label class="field"><span>Categoria</span>
           <div class="categories" id="_ms_cats"></div>
         </label>
+        <div class="category-guidance"><span>Tem dúvidas sobre qual categoria escolher?</span><button type="button" id="browseCategoriesFromLaunch">Clique aqui</button></div>
 
         <!-- cartão + parcelas (name="cardId" para não conflitar com accountId) -->
         <div id="_ms_credit">
@@ -134,6 +135,11 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   }));
 
   root.querySelector('#addCategoryFromLaunch').addEventListener('click', () => categoryModal(type, null, name => modal(type, name)));
+  root.querySelector('#browseCategoriesFromLaunch').addEventListener('click', () => {
+    closeModal();
+    page = 'categories';
+    render();
+  });
 
   root.querySelectorAll('[data-pay]').forEach(b => b.addEventListener('click', () => {
     payment = b.dataset.pay;

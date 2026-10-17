@@ -619,7 +619,8 @@ button { -webkit-appearance: none; appearance: none; }
 
 .info-card:active,
 .info-card[data-edit-account]:active,
-.info-card[data-edit-card]:active {
+.info-card[data-edit-card]:active,
+.info-card[data-open-card]:active {
   transform: scale(0.985);
   box-shadow: var(--shadow);
 }
@@ -652,6 +653,30 @@ button { -webkit-appearance: none; appearance: none; }
   color: var(--muted);
   font-size: 0.75rem;
 }
+.info-card[data-open-card] { cursor: pointer; }
+.info-card[data-open-card]:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 3px; }
+.card-detail-summary { display: grid; gap: 12px; }
+.card-detail-summary .row,
+.card-invoice-summary .row { color: var(--muted); font-size: .8125rem; }
+.card-detail-summary .row b,
+.card-invoice-summary .row b { color: var(--ink); }
+.card-detail-summary .row .card-detail-invoice-total,
+.card-invoice-summary .card-invoice-remaining { color: var(--expense); }
+.card-detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.card-detail-actions .modal-secondary,
+.card-detail-actions .save { min-width: 0; min-height: 48px; margin: 0; padding: 10px; }
+.card-invoice-month { justify-content: center; margin-bottom: 12px; }
+.card-invoice-summary { display: grid; gap: 10px; margin-bottom: 22px; }
+.card-invoice-summary .save { margin-top: 4px; }
+.card-invoice-summary .card-invoice-paid { color: var(--income); }
+.card-invoice-paid-message { padding-top: 5px; color: var(--income); text-align: center; font-size: .875rem; font-weight: 700; }
+.card-invoice-count { color: var(--muted); font-size: .8125rem; }
+.card-invoice-purchase { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.card-invoice-purchase-info { min-width: 0; flex: 1; }
+.card-invoice-purchase-info strong,
+.card-invoice-purchase-info small { display: block; }
+.card-invoice-purchase-info small { margin-top: 4px; color: var(--muted); font-size: .6875rem; }
+.card-invoice-purchase > b { flex: 0 0 auto; color: var(--expense); font-size: .8125rem; }
 
 /* ====== CHARTS ====== */
 .chart-card {
@@ -1109,6 +1134,9 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   scrollbar-width: none;
 }
 .categories::-webkit-scrollbar { display: none; }
+.category-guidance { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: -4px 0 12px; color: var(--muted); font-size: .75rem; }
+.category-guidance button { padding: 0; border: 0; background: transparent; color: var(--blue-700); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+:root[data-mode="dark"] .category-guidance button { color: var(--blue-300); }
 
 .cat-choice {
   border: 1.5px solid var(--line);

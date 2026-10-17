@@ -276,6 +276,7 @@ let page = state.pinLock?.enabled ? 'lock' : 'home';
 let statsFilter = 'month';
 let statsType = 'expense';
 let budgetType = 'expense';
+let selectedCardId = '';
 let selectedCategoryName = '';
 let selectedCategoryType = 'expense';
 let categoryDetailSort = 'date';

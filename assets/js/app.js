@@ -243,6 +243,22 @@ document.addEventListener('click', e => {
   const editCard = e.target.closest('[data-edit-card]');
   if (editCard) { cardModal(editCard.dataset.editCard); return; }
 
+  const openCard = e.target.closest('[data-open-card]');
+  if (openCard) {
+    selectedCardId = openCard.dataset.openCard;
+    page = 'cardDetail';
+    render();
+    return;
+  }
+
+  const viewCardInvoice = e.target.closest('[data-view-card-invoice]');
+  if (viewCardInvoice) {
+    selectedCardId = viewCardInvoice.dataset.viewCardInvoice;
+    page = 'cardInvoice';
+    render();
+    return;
+  }
+
   const catBudget = e.target.closest('[data-cat-budget]');
   if (catBudget) { categoryBudgetModal(catBudget.dataset.catBudget, catBudget.dataset.budgetType || 'expense'); return; }
 
@@ -397,7 +413,7 @@ document.addEventListener('click', e => {
 
 // Suporte a teclado: Enter/Espaço em elementos clicáveis
 document.addEventListener('keydown', e => {
-  const clickable = e.target.closest?.('[data-tx-id],[data-edit-account],[data-edit-card],[data-cat-budget]');
+  const clickable = e.target.closest?.('[data-tx-id],[data-edit-account],[data-edit-card],[data-open-card],[data-cat-budget]');
   if (clickable && clickable === e.target && (e.key === 'Enter' || e.key === ' ')) {
     e.preventDefault(); clickable.click(); return;
   }

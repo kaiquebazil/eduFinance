@@ -640,7 +640,7 @@ function accounts() {
         const pct       = limit ? Math.min((used / limit) * 100, 100) : 0;
         const invoice   = creditInvoiceTotal(c, state.selectedMonth);
         return `
-        <div class="info-card" style="flex-direction:column;align-items:stretch;gap:10px" data-edit-card="${escapeHtml(c.id)}">
+        <div class="info-card" style="flex-direction:column;align-items:stretch;gap:10px" data-open-card="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="Abrir cartão ${escapeHtml(c.name)}">
           <div style="display:flex;align-items:center;gap:12px">
             <div class="info-icon">${escapeHtml(c.icon)}</div>
             <div style="flex:1"><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.brand || 'Outros')} · Fecha dia ${c.closingDay} · Vence dia ${c.dueDay}</small></div>
@@ -721,6 +721,73 @@ function installmentsPage() {
         </div>
       </div>`;
     }).join('') : '<div class="empty"><b>Nenhuma compra parcelada</b>Cadastre um cartão e faça uma compra em várias parcelas.</div>'}
+  </div>`;
+}
+
+function cardDetailPage() {
+  const card = state.accounts.find(account => account.id === selectedCardId && isCredit(account));
+  if (!card) return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button><span class="period">Cartão</span><span></span></div></header><div class="content"><div class="empty">Cartão não encontrado.</div></div>`;
+  const used = creditUsed(card);
+  const available = Math.max(Number(card.limit || 0) - used, 0);
+  const invoice = creditInvoiceTotal(card, state.selectedMonth);
+  const remaining = invoiceRemaining(card, state.selectedMonth);
+  return `<header class="top">
+    <div class="topbar">
+      <button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button>
+      <span class="period">Cartão de crédito</span>
+      <button class="icon-btn" data-edit-card="${escapeHtml(card.id)}" aria-label="Editar cartão">✎</button>
+    </div>
+    <div class="balance-label">${escapeHtml(card.brand || 'Cartão')} · vence dia ${card.dueDay}</div>
+    <div class="balance" style="font-size:1.375rem">${escapeHtml(card.icon)} ${escapeHtml(card.name)}</div>
+  </header>
+  <div class="content">
+    <div class="panel card-detail-summary">
+      <div class="row"><span>Limite total</span><b>${money(card.limit)}</b></div>
+      <div class="row"><span>Comprometido</span><b>${money(used)}</b></div>
+      <div class="row"><span>Disponível</span><b>${money(available)}</b></div>
+      <div class="row"><span>Fatura de ${monthLabel(state.selectedMonth)}</span><b class="card-detail-invoice-total">${money(invoice)}</b></div>
+    </div>
+    <div class="card-detail-actions">
+      <button class="modal-secondary" type="button" data-edit-card="${escapeHtml(card.id)}">Editar cartão</button>
+      <button class="save" type="button" data-view-card-invoice="${escapeHtml(card.id)}">Ver fatura</button>
+    </div>
+  </div>`;
+}
+
+function cardInvoicePage() {
+  const card = state.accounts.find(account => account.id === selectedCardId && isCredit(account));
+  if (!card) return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button><span class="period">Fatura</span><span></span></div></header><div class="content"><div class="empty">Cartão não encontrado.</div></div>`;
+  const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => a.date.localeCompare(b.date));
+  const total = creditInvoiceTotal(card, state.selectedMonth);
+  const paid = invoicePaidTotal(card, state.selectedMonth);
+  const remaining = invoiceRemaining(card, state.selectedMonth);
+  return `<header class="top">
+    <div class="topbar">
+      <button class="icon-btn" data-go="cardDetail" aria-label="Voltar ao cartão">‹</button>
+      <span class="period">Fatura do cartão</span>
+      <span style="width:36px"></span>
+    </div>
+    <div class="balance-label">${escapeHtml(card.icon)} ${escapeHtml(card.name)} · vence ${dateFull(invoiceDueDate(card, state.selectedMonth))}</div>
+    <div class="balance" style="font-size:1.375rem">${monthLabel(state.selectedMonth)}</div>
+  </header>
+  <div class="content">
+    <div class="topbar card-invoice-month">${monthChanger()}</div>
+    <div class="panel card-invoice-summary">
+      <div class="row"><span>Valor da fatura</span><b>${money(total)}</b></div>
+      <div class="row"><span>Pago</span><b class="card-invoice-paid">${money(paid)}</b></div>
+      <div class="row"><strong>Falta pagar</strong><strong class="card-invoice-remaining">${money(remaining)}</strong></div>
+      ${remaining > 0 ? `<button class="save" data-pay-invoice="${escapeHtml(card.id)}" data-invoice-month="${state.selectedMonth}" data-invoice-amount="${remaining}">Pagar ${money(remaining)}</button>` : total > 0 ? '<div class="card-invoice-paid-message">✓ Fatura paga</div>' : ''}
+    </div>
+    <h2 class="section-title">Compras nesta fatura <span class="card-invoice-count">${purchases.length}</span></h2>
+    ${purchases.length ? `<div class="setting-list">${purchases.map(tx => {
+      const installmentLabel = tx.installment ? `${tx.installment.current}/${tx.installment.total} parcelas` : 'Compra à vista';
+      const description = (tx.note || '').replace(/\s\(\d+\/\d+\)$/, '');
+      return `<article class="card-invoice-purchase">
+        <span class="s-icon">${escapeHtml(tx.icon || card.icon)}</span>
+        <span class="card-invoice-purchase-info"><strong>${escapeHtml(tx.category || 'Compra')}</strong><small>${escapeHtml(description || installmentLabel)} · ${installmentLabel} · vence ${dateFull(tx.date)}</small></span>
+        <b>${money(tx.amount)}</b>
+      </article>`;
+    }).join('')}</div>` : '<div class="empty"><b>Nenhuma compra nesta fatura</b>As parcelas futuras aparecerão aqui quando você mudar o mês.</div>'}
   </div>`;
 }
 
@@ -926,6 +993,8 @@ function render() {
   if (page !== 'lock') applyRecurring();
   const screens = {
     home, stats, categoryDetail, budget, settings, privacy: privacyPage, lock: lockScreen, themes: themesPage, fontSizePage, accounts,
+    cardDetail: cardDetailPage,
+    cardInvoice: cardInvoicePage,
     balanceDisplay: balanceDisplayPage,
     categories:   categoriesPage,
     all,
@@ -966,7 +1035,7 @@ function render() {
   });
 
   // Acessibilidade: tornar elementos clicáveis focáveis via teclado
-  screen.querySelectorAll('[data-tx-id],[data-edit-account],[data-edit-card],[data-cat-budget]')
+  screen.querySelectorAll('[data-tx-id],[data-edit-account],[data-edit-card],[data-open-card],[data-cat-budget]')
     .forEach(el => { el.tabIndex = 0; el.setAttribute('role', 'button'); });
 
   // Rotular icon-btns sem aria-label
