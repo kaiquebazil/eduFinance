@@ -110,6 +110,7 @@ function groupedTransactions(limit, list = null) {
 /* ==== TELAS ==== */
 
 function home() {
+  const reminderCount = invoiceReminders().length;
   const monthTransactions = inMonth();
   const hasPendingCardPurchases = monthTransactions.some(tx =>
     tx.type === 'expense' && isCredit(state.accounts.find(account => account.id === tx.accountId))
@@ -151,6 +152,10 @@ function home() {
       </button>
       <button class="home-icon" id="searchBtn" aria-label="Buscar lançamentos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg></button>
       <button class="home-icon" id="monthPickerBtn" aria-label="Escolher mês"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button>
+      <button class="home-icon notification-bell" data-go="notifications" aria-label="Notificações${reminderCount ? `, ${reminderCount} faturas precisam de atenção` : ''}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+        ${reminderCount ? `<span class="notification-badge" aria-hidden="true">${reminderCount > 9 ? '9+' : reminderCount}</span>` : ''}
+      </button>
     </div>
     <div class="home-summary">
       <div class="home-month"><span>${monthYear}</span><b><button class="month-arrow" data-month="-1" aria-label="Mês anterior">‹</button><button class="month-label" data-open-month-picker>${monthName}</button><button class="month-arrow" data-month="1" aria-label="Próximo mês">›</button></b></div>
@@ -771,6 +776,52 @@ function invoicesPage() {
   </div>`;
 }
 
+function invoiceReminders() {
+  const tomorrow = new Date(`${today()}T12:00:00`);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+  return state.accounts.filter(isCredit).flatMap(card => {
+    const months = [...new Set(state.transactions
+      .filter(tx => tx.type === 'expense' && tx.accountId === card.id)
+      .map(tx => tx.invoiceMonth || monthOf(tx.date)))];
+    return months.map(month => ({
+      card,
+      month,
+      dueDate: invoiceDueDate(card, month),
+      remaining: invoiceRemaining(card, month)
+    }));
+  }).filter(invoice => invoice.remaining > 0 && invoice.dueDate <= tomorrowDate)
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+}
+
+function notificationsPage() {
+  const reminders = invoiceReminders();
+  const todayDate = today();
+  return `<header class="top">
+    <div class="topbar">
+      <button class="icon-btn" data-go="home" aria-label="Voltar">‹</button>
+      <span class="period">Notificações</span>
+      <span style="width:36px"></span>
+    </div>
+    <div class="balance-label">Lembretes de pagamento</div>
+    <div class="balance" style="font-size:1.375rem">${reminders.length ? `${reminders.length} fatura(s) para pagar` : 'Tudo em dia'}</div>
+  </header>
+  <div class="content">
+    ${reminders.length ? `<div class="setting-list">${reminders.map(({ card, month, dueDate, remaining }) => {
+      const status = dueDate < todayDate ? 'Vencida' : dueDate === todayDate ? 'Vence hoje' : 'Vence amanhã';
+      return `<article class="notification-item">
+        <span class="notification-icon" aria-hidden="true">🧾</span>
+        <div class="notification-copy">
+          <strong>${status}: fatura ${escapeHtml(card.name)}</strong>
+          <small>${monthLabel(month)} · vencimento ${dateFull(dueDate)}</small>
+          <b>${money(remaining)} pendente</b>
+        </div>
+        <button class="save" data-pay-invoice="${escapeHtml(card.id)}" data-invoice-month="${month}" data-invoice-amount="${remaining}">Pagar</button>
+      </article>`;
+    }).join('')}</div>` : '<div class="empty"><b>Nenhuma fatura precisa de atenção agora</b>O lembrete aparece um dia antes do vencimento.</div>'}
+  </div>`;
+}
+
 function categoriesPage() {
   const helpCategories = new Set([
     'Alimentação', 'Animais de Estimação', 'Acessórios', 'Cuidados Pessoais',
@@ -880,6 +931,7 @@ function render() {
     all,
     installments: installmentsPage,
     invoices:     invoicesPage,
+    notifications: notificationsPage,
     recurring:    recurringPage
   };
   screens.fontSize = fontSizePage;

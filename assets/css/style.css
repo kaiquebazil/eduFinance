@@ -1407,7 +1407,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .home-top::before { display: none; }
 .home-header {
   display: grid;
-  grid-template-columns: 36px 1fr 36px 36px 36px;
+  grid-template-columns: 36px 1fr repeat(4, 36px);
   align-items: center;
   gap: 8px;
 }
@@ -1433,6 +1433,40 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 }
 .home-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .home-icon.privacy-toggle svg { width: 20px; height: 20px; }
+.notification-bell { position: relative; }
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid var(--blue-600);
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #ef4444;
+  color: #fff;
+  font-size: .625rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.notification-icon { font-size: 1.5rem; }
+.notification-copy { min-width: 0; flex: 1; display: grid; gap: 4px; }
+.notification-copy strong { color: var(--ink); font-size: .875rem; }
+.notification-copy small { color: var(--muted); font-size: .75rem; }
+.notification-copy b { color: var(--expense); font-size: .8125rem; }
+.notification-item .save { width: auto; flex: 0 0 auto; margin: 0; padding: 10px 13px; }
 .home-summary {
   display: grid;
   grid-template-columns: .92fr 1fr 1fr 1fr;
@@ -1656,7 +1690,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
     box-shadow: var(--shadow-sm);
   }
   .top.home-top { padding: 47px 30px 24px; }
-  .home-header { grid-template-columns: 1fr 40px 40px 40px; gap: 10px; }
+  .home-header { grid-template-columns: 1fr repeat(4, 40px); gap: 10px; }
   .home-header > [data-go="settings"] { display: none; }
   .home-header h1 { text-align: left; font-size: 1.35rem; }
   .home-summary { gap: 24px; margin-top: 24px; }

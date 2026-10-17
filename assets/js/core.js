@@ -30,6 +30,8 @@ const lastDayOfMonth = (month) => {
   d.setMonth(d.getMonth() + 1, 0);
   return d.getDate();
 };
+const invoiceDueDate = (account, month) =>
+  `${month}-${String(Math.min(Number(account.dueDay || 5), lastDayOfMonth(month))).padStart(2, '0')}`;
 const startOfWeek = () => {
   const d = new Date();
   const day = d.getDay() || 7;
@@ -124,11 +126,7 @@ const seed = {
   accounts: [
     { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
   ],
-  transactions: [
-    { id: 'income-seed', type: 'income', category: 'Salário', icon: '💼', accountId: 'bank', amount: 5200, date: `${currentMonth()}-05`, note: 'Pagamento mensal' },
-    { id: 'market-seed', type: 'expense', category: 'Alimentação', icon: '🍽️', accountId: 'bank', amount: 248.7, date: `${currentMonth()}-11`, note: 'Supermercado' },
-    { id: 'ride-seed', type: 'expense', category: 'Transporte', icon: '🚕', accountId: 'bank', amount: 32.5, date: `${currentMonth()}-11`, note: 'Corrida' }
-  ],
+  transactions: [],
   recurring: []
 };
 
@@ -246,7 +244,8 @@ function migrate(old) {
     categories: mergedCategories,
     recurring: Array.isArray(old.recurring) ? old.recurring : []
   };
-  base.transactions = (old.transactions || []).map(t => ({
+  const sampleTransactionIds = new Set(['income-seed', 'market-seed', 'ride-seed']);
+  base.transactions = (old.transactions || []).filter(t => !sampleTransactionIds.has(String(t.id))).map(t => ({
     ...t,
     id:        String(t.id || makeId()),
     accountId: t.accountId || 'bank'
