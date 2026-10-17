@@ -4,7 +4,6 @@ const APP_FILES = [
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
-  './icon-192.png',
   './icon-512.png',
   './assets/css/style.css',
   './assets/js/core.js',

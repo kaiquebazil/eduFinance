@@ -731,18 +731,28 @@ function accountModal(existingId = null) {
   };
 }
 
-function categoryBudgetModal(catName = '') {
+function categoryBudgetModal(catName = '', type = 'expense') {
+  const budgetMap = type === 'income' ? state.incomeCategoryBudgets : state.categoryBudgets;
   if (!catName) {
-    const available = selectableCategories('expense').filter(c => !state.categoryBudgets[c.name]);
+    const available = selectableCategories(type).filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
     if (!available.length) return toast('Não há outras categorias disponíveis para criar uma meta.');
 
     const root = document.getElementById('modalRoot');
     root.innerHTML = `<div class="modal-backdrop">
       <form class="modal dialog-modal" id="categoryBudgetForm">
         <div class="handle"></div>
-        <h2 class="modal-title">Nova meta por categoria</h2>
+        <h2 class="modal-title">Nova meta de ${type === 'income' ? 'receita' : 'despesa'} por categoria</h2>
         <label class="field"><span>Categoria</span><select name="category">${available.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</option>`).join('')}</select></label>
-        <label class="field"><span>Limite mensal</span><input name="amount" inputmode="decimal" data-money placeholder="R$ 0,00" required></label>
+        <label class="field budget-amount-field"><span>${type === 'income' ? 'Meta mensal' : 'Limite mensal'}</span><div class="budget-amount-row"><input name="amount" inputmode="decimal" data-money placeholder="R$ 0,00" required><button type="button" id="toggleBudgetCalculator" aria-expanded="false" aria-controls="budgetCalculator" aria-label="Abrir calculadora"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="6" y="8" width="2" height="2" rx=".4"/><rect x="11" y="8" width="2" height="2" rx=".4"/><rect x="16" y="8" width="2" height="2" rx=".4"/><rect x="6" y="12" width="2" height="2" rx=".4"/><rect x="11" y="12" width="2" height="2" rx=".4"/><rect x="16" y="12" width="2" height="2" rx=".4"/><path d="M7 16h10"/></svg></button></div></label>
+        <section class="budget-calculator" id="budgetCalculator" aria-label="Calculadora" hidden>
+          <output class="budget-calculator-screen" id="budgetCalculatorExpression" aria-live="polite">0</output>
+          <div class="budget-calculator-keys">
+            ${[['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['clear','0',',','+']].map(row => row.map(key => `<button type="button" data-calculator-key="${key}" class="${['/','*','-','+'].includes(key) ? 'operator' : ''}">${({ clear: 'C', '/': '÷', '*': '×', '-': '−', '+': '+' })[key] || key}</button>`).join('')).join('')}
+            <button type="button" data-calculator-key="backspace" aria-label="Apagar último dígito">⌫</button>
+            <button type="button" data-calculator-key="equals" class="operator">=</button>
+            <button type="button" id="useBudgetCalculatorResult" class="use-calculator-result" disabled>Usar resultado</button>
+          </div>
+        </section>
         <div class="dialog-actions">
           <button type="button" class="modal-secondary" id="cancelModal">Cancelar</button>
           <button class="save">Criar meta</button>
@@ -751,15 +761,90 @@ function categoryBudgetModal(catName = '') {
     </div>`;
     root.querySelector('#cancelModal').addEventListener('click', closeModal);
     root.querySelector('.modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    let calculatorExpression = '';
+    let calculatorResult = null;
+    const calculatorScreen = root.querySelector('#budgetCalculatorExpression');
+    const useCalculatorResult = root.querySelector('#useBudgetCalculatorResult');
+    const updateCalculator = () => {
+      calculatorScreen.textContent = calculatorExpression.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/\./g, ',') || '0';
+      calculatorResult = null;
+      try {
+        const tokens = calculatorExpression.match(/(?:\d+(?:\.\d*)?|\.\d+|[()+\-*/])/g) || [];
+        if (tokens.join('') !== calculatorExpression || !tokens.length) throw new Error('Invalid expression');
+        let index = 0;
+        const factor = () => {
+          if (tokens[index] === '-') { index++; return -factor(); }
+          if (tokens[index] === '+') { index++; return factor(); }
+          if (tokens[index] === '(') {
+            index++;
+            const value = expression();
+            if (tokens[index++] !== ')') throw new Error('Missing parenthesis');
+            return value;
+          }
+          const token = tokens[index++];
+          if (!token || !/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)) throw new Error('Number expected');
+          return Number(token);
+        };
+        const term = () => {
+          let value = factor();
+          while (tokens[index] === '*' || tokens[index] === '/') {
+            const operator = tokens[index++], next = factor();
+            if (operator === '/' && next === 0) throw new Error('Division by zero');
+            value = operator === '*' ? value * next : value / next;
+          }
+          return value;
+        };
+        const expression = () => {
+          let value = term();
+          while (tokens[index] === '+' || tokens[index] === '-') {
+            const operator = tokens[index++], next = term();
+            value = operator === '+' ? value + next : value - next;
+          }
+          return value;
+        };
+        const value = expression();
+        if (index !== tokens.length || !Number.isFinite(value)) throw new Error('Invalid result');
+        calculatorResult = Math.round(value * 100) / 100;
+      } catch {}
+      useCalculatorResult.disabled = calculatorResult === null || calculatorResult < 0;
+      useCalculatorResult.textContent = calculatorResult === null ? 'Usar resultado' : money(calculatorResult);
+      if (calculatorResult === null) useCalculatorResult.textContent = 'Usar resultado';
+    };
+    root.querySelector('#toggleBudgetCalculator').addEventListener('click', e => {
+      const panel = root.querySelector('#budgetCalculator');
+      panel.hidden = !panel.hidden;
+      e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
+    });
+    root.querySelectorAll('[data-calculator-key]').forEach(button => button.addEventListener('click', () => {
+      const key = button.dataset.calculatorKey;
+      if (key === 'clear') calculatorExpression = '';
+      else if (key === 'backspace') calculatorExpression = calculatorExpression.slice(0, -1);
+      else if (key === 'equals') {
+        updateCalculator();
+        if (calculatorResult !== null) calculatorExpression = String(calculatorResult);
+      } else {
+        const digit = key === ',' ? '.' : key;
+        const last = calculatorExpression.slice(-1);
+        if (/^[+*/-]$/.test(digit) && (!calculatorExpression || /[+*/-]$/.test(last))) return;
+        if (digit === '.' && /(?:^|[+*/-])\d*\.\d*$/.test(calculatorExpression)) return;
+        calculatorExpression += digit;
+      }
+      updateCalculator();
+    }));
+    useCalculatorResult.addEventListener('click', () => {
+      if (calculatorResult === null || calculatorResult < 0) return;
+      root.querySelector('[name=amount]').value = money(calculatorResult);
+      root.querySelector('[name=amount]').dispatchEvent(new Event('input', { bubbles: true }));
+    });
     root.querySelector('#categoryBudgetForm').addEventListener('submit', e => {
       e.preventDefault();
       const form = new FormData(e.target);
       const name = form.get('category');
       const amount = parseMoney(form.get('amount'));
-      if (!amount) return toast('Informe um limite maior que zero.');
-      state.categoryBudgets[name] = amount;
+      if (!String(form.get('amount') || '').trim()) return toast('Informe um limite mensal.');
+      budgetMap[name] = amount;
       persist(); render(); toast('Meta definida');
-      const remaining = selectableCategories('expense').filter(c => !state.categoryBudgets[c.name]);
+      const remaining = selectableCategories(type).filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
       const select = root.querySelector('[name=category]');
       if (remaining.length) {
         select.innerHTML = remaining.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</option>`).join('');
@@ -774,17 +859,17 @@ function categoryBudgetModal(catName = '') {
     return;
   }
 
-  const current = state.categoryBudgets[catName] || 0;
+  const current = budgetMap[catName] || 0;
   inputModal({
     title:       `Meta para ${catName}`,
-    label:       'Valor mensal (R$) — deixe 0 para remover',
+    label:       `Valor mensal (R$) — deixe 0 para remover`,
     placeholder: 'R$ 0,00',
     value:       current ? money(current) : '',
     money:       true,
     action: value => {
       const amount = parseMoney(value) || 0;
-      if (amount > 0) state.categoryBudgets[catName] = amount;
-      else            delete state.categoryBudgets[catName];
+      if (amount > 0) budgetMap[catName] = amount;
+      else            delete budgetMap[catName];
       persist(); render(); toast(amount ? 'Meta definida' : 'Meta removida');
     }
   });

@@ -86,12 +86,6 @@ document.addEventListener('click', e => {
   if (e.target.closest('#modalRoot')) return;
   if (page === 'lock' && !e.target.closest('#unlockForm')) return;
 
-  if (e.target.closest('#toggleHomeCards')) {
-    state.hideHomeCards = !state.hideHomeCards;
-    persist(); render();
-    return;
-  }
-
   const balanceMode = e.target.closest('[data-home-balance-mode]');
   if (balanceMode) {
     state.homeBalanceMode = balanceMode.dataset.homeBalanceMode;
@@ -250,7 +244,14 @@ document.addEventListener('click', e => {
   if (editCard) { cardModal(editCard.dataset.editCard); return; }
 
   const catBudget = e.target.closest('[data-cat-budget]');
-  if (catBudget) { categoryBudgetModal(catBudget.dataset.catBudget); return; }
+  if (catBudget) { categoryBudgetModal(catBudget.dataset.catBudget, catBudget.dataset.budgetType || 'expense'); return; }
+
+  const budgetTypeButton = e.target.closest('[data-budget-type]');
+  if (budgetTypeButton?.matches('.budget-type-switch button')) {
+    budgetType = budgetTypeButton.dataset.budgetType;
+    render();
+    return;
+  }
 
   const payInvoiceBtn = e.target.closest('[data-pay-invoice]');
   if (payInvoiceBtn) {
@@ -295,7 +296,10 @@ document.addEventListener('click', e => {
     return;
   }
 
-  if (e.target.closest('#addCategoryBudget')) { categoryBudgetModal(); return; }
+  if (e.target.closest('#addCategoryBudget')) {
+    categoryBudgetModal('', e.target.closest('#addCategoryBudget').dataset.budgetType || 'expense');
+    return;
+  }
 
   if (e.target.closest('#exportData'))  { exportData();  return; }
   if (e.target.closest('#importData'))  { importData();  return; }
@@ -421,6 +425,31 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 ;(function setupModalFocus() {
   const modalRoot = document.getElementById('modalRoot');
   let lastFocus   = null;
+
+  const visualViewport = window.visualViewport;
+  const syncModalViewport = () => {
+    if (!visualViewport) return;
+    modalRoot.style.setProperty('--visual-viewport-height', `${visualViewport.height}px`);
+    modalRoot.style.setProperty('--visual-viewport-offset-top', `${visualViewport.offsetTop}px`);
+    keepFocusedModalControlVisible();
+  };
+  const keepFocusedModalControlVisible = () => {
+    const control = document.activeElement;
+    if (!modalRoot.contains(control) || !control.matches?.('input, select, textarea, [contenteditable="true"]')) return;
+    requestAnimationFrame(() => {
+      if (!modalRoot.contains(control)) return;
+      const viewportTop = visualViewport?.offsetTop || 0;
+      const viewportBottom = viewportTop + (visualViewport?.height || window.innerHeight);
+      const rect = control.getBoundingClientRect();
+      if (rect.top < viewportTop + 12 || rect.bottom > viewportBottom - 12) {
+        control.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }
+    });
+  };
+  modalRoot.addEventListener('focusin', keepFocusedModalControlVisible);
+  syncModalViewport();
+  visualViewport?.addEventListener('resize', syncModalViewport);
+  visualViewport?.addEventListener('scroll', syncModalViewport);
 
   new MutationObserver(() => {
     modalRoot.querySelectorAll('.modal, [role="dialog"]').forEach(modal => {

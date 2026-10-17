@@ -88,7 +88,7 @@ function transactionHTML(t) {
       <div class="transaction-name">${escapeHtml(t.category || 'Transferência')}${instBadge}${cardBadge}</div>
       <div class="transaction-note">${meta}</div>
     </div>
-    <div class="amount ${transfer ? 'transfer' : invoicePayment ? 'income' : t.type}">${transfer ? '↔' : invoicePayment ? '✓' : t.type === 'income' ? '+' : '−'} ${money(t.amount)}</div>
+    <div class="amount ${transfer ? 'transfer' : invoicePayment ? 'expense' : t.type}">${transfer ? '↔' : invoicePayment ? '−' : t.type === 'income' ? '+' : '−'} ${money(t.amount)}</div>
   </article>`;
 }
 
@@ -110,30 +110,27 @@ function groupedTransactions(limit, list = null) {
 /* ==== TELAS ==== */
 
 function home() {
-  const t            = totals();
-  const cards        = state.accounts.filter(isCredit);
+  const monthTransactions = inMonth();
+  const hasPendingCardPurchases = monthTransactions.some(tx =>
+    tx.type === 'expense' && isCredit(state.accounts.find(account => account.id === tx.accountId))
+  );
+  const movements = monthTransactions.filter(tx =>
+    !(tx.type === 'expense' && isCredit(state.accounts.find(account => account.id === tx.accountId)))
+  );
+  const t = totals(movements);
+  t.expense += movements.filter(tx => tx.type === 'invoice_payment').reduce((sum, tx) => sum + Number(tx.amount), 0);
   const balance      = state.homeBalanceMode === 'remaining'
     ? state.accounts.reduce((sum, a) => sum + accountBalance(a), 0)
     : t.income - t.expense;
-  const nextInvoice = cards.flatMap(card => {
-    const months = [...new Set(state.transactions
-      .filter(tx => tx.type === 'expense' && tx.accountId === card.id)
-      .map(tx => tx.invoiceMonth || monthOf(tx.date)))];
-    return months.map(month => ({
-      card, month, remaining: invoiceRemaining(card, month),
-      dueDate: creditInvoice(card, month).map(tx => tx.date).sort()[0]
-        || `${month}-${String(Math.min(card.dueDay || 5, lastDayOfMonth(month))).padStart(2, '0')}`
-    }));
-  }).filter(invoice => invoice.remaining > 0)
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
 
   const monthDate = new Date(`${state.selectedMonth}-01T12:00:00`);
   const monthName = monthDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
   const monthYear = monthDate.toLocaleDateString('pt-BR', { year: 'numeric' });
   const grouped = {};
-  inMonth().sort((a, b) => b.date.localeCompare(a.date)).forEach(tx => (grouped[tx.date] ??= []).push(tx));
+  movements.sort((a, b) => b.date.localeCompare(a.date)).forEach(tx => (grouped[tx.date] ??= []).push(tx));
   const transactions = Object.entries(grouped).map(([date, list]) => {
     const dayTotals = totals(list);
+    dayTotals.expense += list.filter(tx => tx.type === 'invoice_payment').reduce((sum, tx) => sum + Number(tx.amount), 0);
     const labelDate = new Date(`${date}T12:00:00`);
     const weekday = labelDate.toLocaleDateString('pt-BR', { weekday: 'long' });
     const day = labelDate.toLocaleDateString('pt-BR', { day: '2-digit' });
@@ -159,37 +156,18 @@ function home() {
       <div class="home-month"><span>${monthYear}</span><b><button class="month-arrow" data-month="-1" aria-label="Mês anterior">‹</button><button class="month-label" data-open-month-picker>${monthName}</button><button class="month-arrow" data-month="1" aria-label="Próximo mês">›</button></b></div>
       <div><span>Despesas</span><b>${money(t.expense)}</b></div>
       <div><span>Receitas</span><b>${money(t.income)}</b></div>
-      <div><span>${state.homeBalanceMode === 'remaining' ? 'Saldo restante' : 'Saldo do mês'}</span><b>${money(balance)}</b></div>
+      <button type="button" class="home-balance-summary" data-go="balanceDisplay" aria-label="Escolher qual saldo exibir na tela inicial"><span>${state.homeBalanceMode === 'remaining' ? 'Saldo restante' : 'Saldo do mês'}</span><b>${money(balance)}</b></button>
     </div>
   </header>
-  <div class="content home-content ${state.hideHomeCards || !cards.length ? 'home-content-cards-hidden' : ''}">
-    <aside class="home-cards-column" ${cards.length ? '' : 'hidden'}>
-    <div class="home-finance-heading">
-      <h2>Cartões</h2>
-      <button type="button" id="toggleHomeCards" aria-expanded="${!state.hideHomeCards}" aria-label="${state.hideHomeCards ? 'Mostrar resumos dos cartões' : 'Ocultar resumos dos cartões'}">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>${state.hideHomeCards ? '<path d="m4 4 16 16"/>' : ''}</svg>
-        ${state.hideHomeCards ? 'Mostrar' : 'Ocultar'}
-      </button>
-    </div>
-    ${state.hideHomeCards ? '' : `<div class="home-finance-cards" style="grid-template-columns:1fr">
-      <button type="button" class="home-finance-card" data-go="accounts">
-        <span>Gerenciar cartões</span>
-        <strong>${cards.length} ${cards.length === 1 ? 'cartão cadastrado' : 'cartões cadastrados'}</strong>
-      </button>
-      <button type="button" class="home-finance-card" data-go="invoices">
-        <span>${nextInvoice ? (nextInvoice.dueDate < today() ? 'Fatura vencida' : 'Próximo vencimento') : 'Faturas abertas'}</span>
-        <strong>${nextInvoice ? money(nextInvoice.remaining) : 'Tudo em dia'}</strong>
-        <small>${nextInvoice ? `${escapeHtml(nextInvoice.card.name)} · vence ${dateFull(nextInvoice.dueDate)}` : 'Nenhuma fatura pendente'}</small>
-      </button>
-    </div>`}
-    </aside>
-
+  <div class="content home-content">
     <section class="home-movements">
     <div class="section-head home-section-head">
       <h2 class="section-title">Movimentações</h2>
       <button class="link" data-go="all">Ver todas</button>
     </div>
-    ${transactions || '<div class="empty"><b>Nenhum lançamento neste mês</b>Use o botão + para registrar uma movimentação.</div>'}
+    ${transactions || (hasPendingCardPurchases
+      ? '<div class="empty"><b>Nenhuma movimentação em conta neste mês</b>Compras no cartão aguardando pagamento ficam em Ajustes → Cartões.</div>'
+      : '<div class="empty"><b>Nenhum lançamento neste mês</b>Use o botão + para registrar uma movimentação.</div>')}
     </section>
   </div>
   </div>`;
@@ -363,54 +341,62 @@ function categoryDetail() {
 }
 
 function budget() {
-  const t    = totals();
-
+  const type = budgetType;
+  const isIncome = type === 'income';
+  const budgetMap = isIncome ? state.incomeCategoryBudgets : state.categoryBudgets;
+  const actualLabel = isIncome ? 'recebido' : 'utilizado';
+  const categories = state.categories[type] || [];
   const byCategory = {};
-  inMonth().filter(x => x.type === 'expense').forEach(x => {
+  inMonth().filter(x => x.type === type).forEach(x => {
     byCategory[x.category] = (byCategory[x.category] || 0) + Number(x.amount);
   });
-  const goals = Object.entries(state.categoryBudgets)
+  const goals = Object.entries(budgetMap)
     .map(([name, amount]) => {
-      const category = state.categories.expense.find(c => c.name === name);
+      const category = categories.find(c => c.name === name);
       const spent = byCategory[name] || 0;
       const progress = amount > 0 ? spent / amount * 100 : 0;
-      return category && amount > 0 ? { category, amount, spent, progress } : null;
+      return category && amount >= 0 ? { category, amount, spent, progress } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.progress - a.progress);
   const monthlyBudget = goals.reduce((sum, goal) => sum + goal.amount, 0);
-  const actualUsed = monthlyBudget ? t.expense / monthlyBudget * 100 : 0;
+  const actual = Object.values(byCategory).reduce((sum, amount) => sum + amount, 0);
+  const actualUsed = monthlyBudget ? actual / monthlyBudget * 100 : 0;
   const used = Math.min(actualUsed, 100);
 
   return `<header class="top">
     <div class="topbar">${monthChanger()}</div>
-    <div class="balance-label">Orçamento mensal</div>
+    <div class="balance-label">${isIncome ? 'Meta de receitas' : 'Orçamento de despesas'}</div>
     <div class="balance">${money(monthlyBudget)}</div>
   </header>
   <div class="content">
-    <h2 class="section-title">Seu orçamento</h2>
+    <div class="budget-type-switch" role="group" aria-label="Tipo de orçamento">
+      <button type="button" data-budget-type="expense" class="${!isIncome ? 'active' : ''}" aria-pressed="${!isIncome}">Despesas</button>
+      <button type="button" data-budget-type="income" class="${isIncome ? 'active' : ''}" aria-pressed="${isIncome}">Receitas</button>
+    </div>
+    <h2 class="section-title">${isIncome ? 'Sua meta de receitas' : 'Seu orçamento'}</h2>
     <div class="panel">
       <div class="row">
-        <strong>Despesas de ${monthLabel(state.selectedMonth)}</strong>
+        <strong>${isIncome ? 'Receitas' : 'Despesas'} de ${monthLabel(state.selectedMonth)}</strong>
         <span>${Math.round(actualUsed)}%</span>
       </div>
-      <div class="budget-progress ${budgetHeatClass(actualUsed)}"><i style="width:${used}%"></i></div>
+      <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(actualUsed)}"><i style="width:${used}%"></i></div>
       <div class="row" style="font-size: 0.8125rem;color:var(--muted)">
-        <span>${money(t.expense)} utilizado</span>
-        <span>${money(Math.max(monthlyBudget - t.expense, 0))} restante</span>
+        <span>${money(actual)} ${actualLabel}</span>
+        <span>${money(Math.max(monthlyBudget - actual, 0))} ${isIncome ? 'para atingir a meta' : 'restante'}</span>
       </div>
     </div>
-    <button class="save" id="addCategoryBudget" style="margin-top:12px">Adicionar meta por categoria</button>
+    <button class="save" id="addCategoryBudget" data-budget-type="${type}" style="margin-top:12px">Adicionar meta de ${isIncome ? 'receita' : 'despesa'} por categoria</button>
 
-    <div class="budget-goals-heading"><h2 class="section-title">Metas por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
+    <div class="budget-goals-heading"><h2 class="section-title">Metas de ${isIncome ? 'receita' : 'despesa'} por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
     ${goals.length ? `<div class="setting-list">
       ${goals.map(({ category, amount, spent, progress }) => `
-        <div class="setting category-row" data-cat-budget="${escapeHtml(category.name)}">
+        <div class="setting category-row" data-cat-budget="${escapeHtml(category.name)}" data-budget-type="${type}">
           <span class="s-icon">${escapeHtml(category.icon)}</span>
           <span style="flex:1">
             <strong>${escapeHtml(category.name)}</strong>
-            <small>${money(spent)} de ${money(amount)} · ${Math.round(progress)}%</small>
-            <div class="budget-progress ${budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>
+            <small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
+            <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>
           </span>
           <b class="chev">›</b>
         </div>`).join('')}
@@ -831,6 +817,9 @@ function categoriesPage() {
 }
 
 function all() {
+  const movements = inMonth().filter(tx =>
+    !(tx.type === 'expense' && isCredit(state.accounts.find(account => account.id === tx.accountId)))
+  );
   return `<header class="top">
     <div class="topbar">
       <button class="icon-btn" data-go="home" aria-label="Voltar">‹</button>
@@ -841,7 +830,7 @@ function all() {
     <div class="balance">Histórico</div>
   </header>
   <div class="content">
-    ${groupedTransactions() || '<div class="empty">Nenhum lançamento neste período.</div>'}
+    ${groupedTransactions(null, movements) || '<div class="empty">Nenhum lançamento neste período. Compras no cartão aguardando pagamento ficam em Ajustes → Cartões.</div>'}
   </div>`;
 }
 

@@ -119,6 +119,7 @@ const seed = {
   selectedMonth: currentMonth(),
   budget: 0,
   categoryBudgets: {},
+  incomeCategoryBudgets: {},
   categories,
   accounts: [
     { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
@@ -156,6 +157,9 @@ function sanitizeState(s) {
   s.budget = num(s.budget);
   s.categoryBudgets = Object.fromEntries(
     Object.entries(s.categoryBudgets || {}).map(([k, v]) => [str(k, 40), num(v)])
+  );
+  s.incomeCategoryBudgets = Object.fromEntries(
+    Object.entries(s.incomeCategoryBudgets || {}).map(([k, v]) => [str(k, 40), num(v)])
   );
   s.categories = {
     expense: (s.categories?.expense || []).map(cat),
@@ -249,7 +253,7 @@ function migrate(old) {
   }));
   const validGoalNames = new Set(base.categories.expense.map(c => c.name));
   const goals = Object.entries(base.categoryBudgets)
-    .filter(([name, amount]) => validGoalNames.has(name) && Number(amount) > 0)
+    .filter(([name, amount]) => validGoalNames.has(name) && Number(amount) >= 0)
     .map(([name, amount]) => {
       const spent = base.transactions.reduce((sum, tx) =>
         tx.type === 'expense' && tx.category === name && tx.date?.startsWith(base.selectedMonth)
@@ -258,6 +262,12 @@ function migrate(old) {
     })
     .sort((a, b) => b.progress - a.progress);
   base.categoryBudgets = Object.fromEntries(goals.map(goal => [goal.name, goal.amount]));
+  const validIncomeGoalNames = new Set(base.categories.income.map(c => c.name));
+  base.incomeCategoryBudgets = Object.fromEntries(
+    Object.entries(base.incomeCategoryBudgets || {})
+      .filter(([name, amount]) => validIncomeGoalNames.has(name) && Number(amount) >= 0)
+      .map(([name, amount]) => [name, Number(amount)])
+  );
   return sanitizeState(base);
 }
 
@@ -266,6 +276,7 @@ let state = migrate(JSON.parse(localStorage.getItem(KEY) || 'null'));
 let page = state.pinLock?.enabled ? 'lock' : 'home';
 let statsFilter = 'month';
 let statsType = 'expense';
+let budgetType = 'expense';
 let selectedCategoryName = '';
 let selectedCategoryType = 'expense';
 let categoryDetailSort = 'date';
