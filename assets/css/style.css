@@ -924,6 +924,9 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .category-hidden-title { margin: 18px 0 8px; color: var(--muted); font-size: 0.75rem; font-weight: 700; }
 .category-empty { padding: 16px; color: var(--muted); font-size: 0.75rem; }
 .category-edit-type { margin: -8px 0 16px; color: var(--muted); font-size: 0.8125rem; }
+.category-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.category-suggestion { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; background: var(--card); color: var(--ink-soft); font-size: 0.8125rem; }
+.category-suggestions-empty { color: var(--muted); font-size: 0.8125rem; }
 #categoryIconInput { width: 64px; height: 42px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-size: 1.375rem; }
 #_cat_icons { max-height: 150px; overflow-y: auto; }
 

@@ -136,7 +136,12 @@ function sanitizeState(s) {
   const id  = v => str(v, 64).replace(/[^\w-]/g, '');
   const num = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
   const dateOk = d => /^\d{4}-\d{2}-\d{2}$/.test(d || '');
-  const cat = c => ({ name: str(c?.name, 40), icon: str(c?.icon, 8), hidden: Boolean(c?.hidden) });
+  const cat = c => ({
+    name: str(c?.name, 40),
+    icon: str(c?.icon, 8),
+    hidden: Boolean(c?.hidden),
+    suggestions: Array.isArray(c?.suggestions) ? c.suggestions.map(item => str(item, 80)).filter(Boolean).slice(0, 30) : []
+  });
 
   s.selectedMonth = /^\d{4}-\d{2}$/.test(s.selectedMonth) ? s.selectedMonth : currentMonth();
   if (s.theme === 'dark') { s.colorMode = 'dark'; s.theme = 'default'; }

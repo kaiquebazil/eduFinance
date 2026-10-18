@@ -1,10 +1,15 @@
-const CACHE_NAME = 'edufinance-shell-v22';
+const CACHE_NAME = 'edufinance-shell-v23';
 const APP_FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
   './icon-512.png',
+  './icon-192.png',
+  './apple-touch-icon.png',
+  './icon-192.png?v=2',
+  './icon-512.png?v=2',
+  './apple-touch-icon.png?v=2',
   './assets/css/style.css',
   './assets/js/core.js',
   './assets/js/views.js',

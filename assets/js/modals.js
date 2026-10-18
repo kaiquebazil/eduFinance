@@ -482,36 +482,38 @@ function categoryHelpModal(type, categoryIndex) {
   const category = state.categories[type]?.[categoryIndex];
   if (!category) return;
   const descriptions = {
-    'Acessórios': 'Bolsas, cintos, óculos, joias, pelicula e capas para celular.',
-    'Alimentação': 'Açougue, mercado, padaria e sacolão.',
-    'Animais de Estimação': 'Ração, veterinário, banho e tosa, brinquedos, petshop.',
-    'Assinaturas': 'Streaming, aplicativos, jornais, clubes, plano de celular.',
-    'Cuidados Pessoais': 'Cabeleireiro, salão, cosméticos, higiene, maquiagem, manicure, estetica, skincare.',
-    'Datas Comemorativas': 'Festas, decoração, comemorações, vaquinhas, feriados.',
-    'Doações': 'Contribuições, instituições, causas sociais, cesta básica.',
-    'Educação': 'Mensalidades, cursos, livros, material escolar, consultorias, treinamentos, uniformes.',
-    'Empréstimos': 'Parcelas, empréstimos, financiamentos.',
-    'Estacionamentos/Pedágios': 'Estacionamento, zona azul, pedágios.',
-    'Filhos': 'Mesada, atividades, cuidados, itens infantis.',
-    'Lanches': 'Cafés, salgados, doces.',
-    'Lazer': 'Passeios, parques, atividades recreativas, cinema, clubes, pesca.',
-    'Moradia': 'Aluguel ou Financiamento, IPTU, conta de energia, gas, internet, agua, diariasta, condomínio, prestação da casa,.',
+    'Acessórios': 'Bolsas, cintos, óculos, joias, películas e capas para celular.',
+    'Alimentação': 'Açougues, mercados, padarias e sacolões.',
+    'Animais de Estimação': 'Rações, consultas veterinárias, banhos e tosas, brinquedos e produtos para pets.',
+    'Assinaturas': 'Serviços de streaming, aplicativos, jornais, clubes e planos de celular.',
+    'Cuidados Pessoais': 'Cabeleireiros, salões, cosméticos, produtos de higiene, maquiagens, manicures, serviços de estética e produtos para skincare.',
+    'Datas Comemorativas': 'Festas, decorações, comemorações, vaquinhas e feriados.',
+    'Doações': 'Contribuições, doações para instituições, causas sociais e cestas básicas.',
+    'Educação': 'Mensalidades, cursos, livros, materiais escolares, consultorias, treinamentos e uniformes.',
+    'Empréstimos': 'Parcelas, empréstimos e financiamentos.',
+    'Estacionamentos/Pedágios': 'Estacionamentos, tarifas de zona azul e pedágios.',
+    'Filhos': 'Mesadas, atividades, cuidados e itens infantis.',
+    'Lanches': 'Cafés, salgados e doces.',
+    'Lazer': 'Passeios, parques, atividades recreativas, sessões de cinema, clubes e pescarias.',
+    'Moradia': 'Aluguéis ou financiamentos, IPTU, contas de energia, gás, internet e água, serviços de diaristas, condomínios e prestações da casa.',
     'Outros': 'Outras receitas.',
-    'Presentes': 'Presentes, lembranças.',
-    'Roupas': 'Roupas, calçados, ajustes, lavanderia, costureira.',
-    'Salário': 'Salário, pagamento, remuneração.',
-    'Saúde': 'Consultas, exames, medicamentos, tratamentos, plano de saúde, farmacia, academia, terapia, dentista, esporte.',
-    'Taxas': 'Tarifas bancárias, taxas administrativas, multas, anuidades, juros cartão.',
-    'Trabalho': 'Ferramentas, materiais, despesas profissionais, taxas.',
-    'Transporte': 'Ônibus, metrô, táxi, aplicativo de transporte, combustivel, IPVA, seguro, manutenção, estacionamento, pedágio, lava jato .',
-    'Viagens': 'Passagens, hospedagem, alimentação.'
+    'Presentes': 'Presentes e lembranças.',
+    'Roupas': 'Roupas, calçados, ajustes, serviços de lavanderia e costureiras.',
+    'Salário': 'Salários, pagamentos e remunerações.',
+    'Saúde': 'Consultas, exames, medicamentos, tratamentos, planos de saúde, medicamentos de farmácia, academias, terapias, atendimentos odontológicos e atividades esportivas.',
+    'Taxas': 'Tarifas bancárias, taxas administrativas, multas, anuidades e juros de cartão.',
+    'Trabalho': 'Ferramentas, materiais, despesas profissionais e taxas.',
+    'Transporte': 'Passagens de ônibus e metrô, corridas de táxi e aplicativos, combustíveis, IPVA, seguros, manutenções, estacionamentos, pedágios e lavagens de veículos.',
+    'Viagens': 'Passagens, hospedagens e refeições.'
   };
-  const fallback = type === 'income' ? 'Receitas relacionadas a esta categoria.' : 'Despesas relacionadas a esta categoria.';
+  const description = category.suggestions?.length
+    ? category.suggestions.join(', ')
+    : descriptions[category.name] || (type === 'income' ? 'Receitas relacionadas a esta categoria.' : 'Despesas relacionadas a esta categoria.');
   const root = document.getElementById('modalRoot');
   root.innerHTML = `<div class="modal-backdrop"><section class="modal dialog-modal" role="dialog" aria-modal="true" aria-labelledby="categoryHelpTitle">
     <div class="handle"></div>
     <h2 class="modal-title" id="categoryHelpTitle">${escapeHtml(category.icon)} ${escapeHtml(category.name)}</h2>
-    <p class="dialog-copy">${escapeHtml(descriptions[category.name] || fallback)}</p>
+    <p class="dialog-copy">${escapeHtml(description)}</p>
     <div class="dialog-actions"><button type="button" class="save" id="closeCategoryHelp">Entendi</button></div>
   </section></div>`;
   root.querySelector('#closeCategoryHelp').addEventListener('click', closeModal);
@@ -525,6 +527,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   const existing = editing ? state.categories[type][editIndex] : null;
   let icon = existing?.icon || '🏷️';
   const ICONS = ['🏷️','🍽️','🚕','🛒','🏠','🎉','🙏','⛽','🚗','🩺','💇','🍔','📱','🎮','🎓','💡','🅿️','💰','💸','👨‍👩‍👧','💼','📌','💵','🏦','🎤','👴','❤️','🎁','📚','🐾','🎯','✈️'];
+  const customSuggestions = (existing?.suggestions || []).map(name => [name, '🏷️']);
 
   const $c = sel => root.querySelector(sel);
 
@@ -539,6 +542,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
         <button type="button" data-category-type="income">Receita</button>
       </div>` : `<p class="category-edit-type">${type === 'income' ? 'Categoria de receita' : 'Categoria de despesa'}</p>`}
       <label class="field"><span>Nome da categoria</span><input name="name" maxlength="40" placeholder="Ex.: Saúde" value="${existing ? escapeHtml(existing.name) : ''}" required autofocus></label>
+      <div class="field"><span>Sugestões</span><input id="categorySuggestionInput" maxlength="80" placeholder="Digite uma sugestão"><div class="category-suggestions" id="categorySuggestions"></div></div>
       <label class="field"><span>Ícone</span><input id="categoryIconInput" name="icon" maxlength="8" value="${escapeHtml(icon)}" aria-label="Emoji da categoria">
         <div class="categories" id="_cat_icons">
           ${ICONS.map(x => `<button type="button" class="cat-choice${icon === x ? ' selected' : ''}" data-icon-choice="${x}">${x}</button>`).join('')}
@@ -559,12 +563,36 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
     root.querySelectorAll('[data-icon-choice]').forEach(b =>
       b.classList.toggle('selected', b.dataset.iconChoice === icon)
     );
+    const suggestions = $c('#categorySuggestions');
+    if (suggestions) {
+      suggestions.innerHTML = customSuggestions.length
+        ? customSuggestions.map(([text]) => `<span class="category-suggestion">${escapeHtml(text)}</span>`).join('')
+        : '<span class="category-suggestions-empty">Digite uma sugestão e pressione Enter.</span>';
+    }
   }
 
   /* ── event listeners registrados uma vez ─────────────────────── */
   root.querySelectorAll('[data-category-type]').forEach(b => b.addEventListener('click', () => {
     type = b.dataset.categoryType; updateCatView();
   }));
+  {
+    const addSuggestion = () => {
+      const input = $c('#categorySuggestionInput');
+      const text = input.value.trim();
+      if (!text) return;
+      if (customSuggestions.some(([savedText]) => savedText.toLocaleLowerCase('pt-BR') === text.toLocaleLowerCase('pt-BR'))) {
+        input.value = '';
+        return;
+      }
+      customSuggestions.push([text, '🏷️']);
+      input.value = '';
+      updateCatView();
+    };
+    $c('#categorySuggestionInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addSuggestion(); }
+    });
+    $c('#categorySuggestionInput').addEventListener('change', addSuggestion);
+  }
   root.querySelectorAll('[data-icon-choice]').forEach(b => b.addEventListener('click', () => {
     icon = b.dataset.iconChoice;
     $c('#categoryIconInput').value = icon;
@@ -579,6 +607,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   $c('.modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
   $c('#_catForm').addEventListener('submit', e => {
     e.preventDefault();
+    $c('#categorySuggestionInput')?.dispatchEvent(new Event('change'));
     const name = new FormData(e.target).get('name').trim();
     const normalizeName = value => String(value || '')
       .normalize('NFD')
@@ -597,6 +626,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
       const previousName = category.name;
       category.name = name;
       category.icon = icon || '🏷️';
+      category.suggestions = customSuggestions.map(([text]) => text);
       state.transactions.forEach(tx => {
         if (tx.type === type && tx.category === previousName) {
           tx.category = category.name;
@@ -614,7 +644,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
         delete state.categoryBudgets[previousName];
       }
     } else {
-      state.categories[type].push({ name, icon: icon || '🏷️', hidden: false });
+      state.categories[type].push({ name, icon: icon || '🏷️', hidden: false, suggestions: customSuggestions.map(([text]) => text) });
     }
     state.categories[type].sort((a, b) =>
       a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
