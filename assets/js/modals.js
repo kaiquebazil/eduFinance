@@ -5,6 +5,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   /* ── estado interno ───────────────────────────────────────────── */
   let type         = initialType;
   let selected     = selectableCategories(initialType).find(c => c.name === selectedCategoryName) || selectableCategories(initialType)[0];
+  let categoryQuery = '';
   let payment      = 'account';
   let installments = 1;
 
@@ -38,7 +39,17 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         <button type="button" data-type="income">Receita</button>
       </div>
 
-      <!-- valor -->
+      <!-- categoria primeiro -->
+      <label class="field"><span>Categoria</span>
+        <div class="category-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
+          <input type="search" id="_ms_category_search" placeholder="Buscar categoria" aria-label="Buscar categoria">
+        </div>
+        <div class="categories" id="_ms_cats"></div>
+      </label>
+      <div class="category-guidance"><span>Tem dúvidas sobre qual categoria escolher?</span><button type="button" id="browseCategoriesFromLaunch">Clique aqui</button></div>
+
+      <!-- valor depois da categoria -->
       <input class="amount-input" name="amount" inputmode="decimal" placeholder="R$ 0,00" data-money required>
 
       <!-- forma de pagamento (só aparece em despesa com cartão) -->
@@ -53,11 +64,6 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
 
       <!-- seção: despesa / receita -->
       <div id="_ms_normal">
-        <label class="field"><span>Categoria</span>
-          <div class="categories" id="_ms_cats"></div>
-        </label>
-        <div class="category-guidance"><span>Tem dúvidas sobre qual categoria escolher?</span><button type="button" id="browseCategoriesFromLaunch">Clique aqui</button></div>
-
         <!-- cartão + parcelas (name="cardId" para não conflitar com accountId) -->
         <div id="_ms_credit">
           <label class="field"><span>Cartão</span>
@@ -116,9 +122,11 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     if (!cats.some(c => c.name === selected?.name)) selected = cats[0];
     const catGrid = $('#_ms_cats');
     if (catGrid) {
-      catGrid.innerHTML = cats.map(c =>
+      const query = categoryQuery.trim().toLocaleLowerCase('pt-BR');
+      const visibleCats = query ? cats.filter(c => c.name.toLocaleLowerCase('pt-BR').includes(query)) : cats;
+      catGrid.innerHTML = visibleCats.length ? visibleCats.map(c =>
         `<button type="button" class="cat-choice${selected.name === c.name ? ' selected' : ''}" data-cat="${escapeHtml(c.name)}" data-icon="${escapeHtml(c.icon)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</button>`
-      ).join('');
+      ).join('') : '<span class="category-search-empty">Nenhuma categoria encontrada.</span>';
       catGrid.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => {
         selected = { name: b.dataset.cat, icon: b.dataset.icon };
         catGrid.querySelectorAll('[data-cat]').forEach(x => x.classList.toggle('selected', x === b));
@@ -133,6 +141,11 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     selected = selectableCategories(type)[0];
     updateView();
   }));
+
+  $('#_ms_category_search').addEventListener('input', e => {
+    categoryQuery = e.target.value;
+    updateView();
+  });
 
   root.querySelector('#addCategoryFromLaunch').addEventListener('click', () => categoryModal(type, null, name => modal(type, name)));
   root.querySelector('#browseCategoriesFromLaunch').addEventListener('click', () => {
@@ -180,7 +193,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
         borrowedTo: String(f.get('borrowedTo') || '').trim()
       });
       state.transactions.push(...entries);
-      state.selectedMonth = monthOf(entries[0].date);
+      state.selectedMonth = currentMonth();
     } else {
       const accountId = defaultAccountId;
       state.transactions.push({
@@ -542,7 +555,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
         <button type="button" data-category-type="income">Receita</button>
       </div>` : `<p class="category-edit-type">${type === 'income' ? 'Categoria de receita' : 'Categoria de despesa'}</p>`}
       <label class="field"><span>Nome da categoria</span><input name="name" maxlength="40" placeholder="Ex.: Saúde" value="${existing ? escapeHtml(existing.name) : ''}" required autofocus></label>
-      <div class="field"><span>Sugestões</span><input id="categorySuggestionInput" maxlength="80" placeholder="Digite uma sugestão"><div class="category-suggestions" id="categorySuggestions"></div></div>
+      <div class="field"><span>Sugestões</span><div class="category-suggestion-entry"><input id="categorySuggestionInput" maxlength="80" placeholder="Digite uma sugestão"><button type="button" class="modal-secondary" id="addCategorySuggestion">Adicionar</button></div><div class="category-suggestions" id="categorySuggestions"></div></div>
       <label class="field"><span>Ícone</span><input id="categoryIconInput" name="icon" maxlength="8" value="${escapeHtml(icon)}" aria-label="Emoji da categoria">
         <div class="categories" id="_cat_icons">
           ${ICONS.map(x => `<button type="button" class="cat-choice${icon === x ? ' selected' : ''}" data-icon-choice="${x}">${x}</button>`).join('')}
@@ -567,7 +580,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
     if (suggestions) {
       suggestions.innerHTML = customSuggestions.length
         ? customSuggestions.map(([text]) => `<span class="category-suggestion">${escapeHtml(text)}</span>`).join('')
-        : '<span class="category-suggestions-empty">Digite uma sugestão e pressione Enter.</span>';
+        : '<span class="category-suggestions-empty">Digite uma sugestão e toque em Adicionar.</span>';
     }
   }
 
@@ -591,7 +604,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
     $c('#categorySuggestionInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); addSuggestion(); }
     });
-    $c('#categorySuggestionInput').addEventListener('change', addSuggestion);
+    $c('#addCategorySuggestion').addEventListener('click', addSuggestion);
   }
   root.querySelectorAll('[data-icon-choice]').forEach(b => b.addEventListener('click', () => {
     icon = b.dataset.iconChoice;
@@ -607,7 +620,13 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   $c('.modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
   $c('#_catForm').addEventListener('submit', e => {
     e.preventDefault();
-    $c('#categorySuggestionInput')?.dispatchEvent(new Event('change'));
+    if ($c('#categorySuggestionInput')?.value.trim()) {
+      const input = $c('#categorySuggestionInput');
+      const pendingSuggestion = input.value.trim();
+      if (!customSuggestions.some(([text]) => text.toLocaleLowerCase('pt-BR') === pendingSuggestion.toLocaleLowerCase('pt-BR'))) {
+        customSuggestions.push([pendingSuggestion, '🏷️']);
+      }
+    }
     const name = new FormData(e.target).get('name').trim();
     const normalizeName = value => String(value || '')
       .normalize('NFD')
