@@ -904,6 +904,10 @@ function categoryBudgetModal(catName = '', type = 'expense') {
       if (remaining.length) {
         select.innerHTML = remaining.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</option>`).join('');
         root.querySelector('[name=amount]').value = '';
+        root.querySelector('#budgetCalculator').hidden = true;
+        root.querySelector('#toggleBudgetCalculator').setAttribute('aria-expanded', 'false');
+        calculatorExpression = '';
+        updateCalculator();
         root.querySelector('[name=amount]').focus();
       } else {
         root.querySelector('#categoryBudgetForm').innerHTML = `<div class="handle"></div><h2 class="modal-title">Metas definidas</h2><p class="dialog-copy">Todas as categorias disponíveis já têm uma meta.</p><div class="dialog-actions"><button type="button" class="save" id="finishCategoryBudgets">Fechar</button></div>`;
