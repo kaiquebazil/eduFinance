@@ -977,7 +977,7 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   width: min(100%, 480px);
   border-radius: var(--radius-xl);
   padding: 20px;
-  animation: modal-up 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: modal-up 0.18s ease-out;
   max-height: 92vh;
   max-height: 92dvh;
   max-height: min(92dvh, calc(var(--visual-viewport-height, 100dvh) - 24px));
@@ -1004,8 +1004,8 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
 .modal-close:active { background: var(--line); }
 
 @keyframes modal-up {
-  from { transform: translateY(16px); }
-  to   { transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .handle {
@@ -2292,18 +2292,16 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
     color: var(--blue-300);
   }
   #modalRoot #_msBd #_msForm {
-    animation: new-transaction-desktop-in .32s cubic-bezier(.2, .85, .25, 1) both;
-    transform-origin: center;
+    animation: new-transaction-desktop-in .18s ease-out both;
   }
 }
 
 @keyframes desktop-modal-in {
-  from { opacity: 0; transform: translateY(8px) scale(.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes new-transaction-desktop-in {
-  from { opacity: 0; transform: translateY(18px) scale(.96); }
-  70% { opacity: 1; transform: translateY(-2px) scale(1.005); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

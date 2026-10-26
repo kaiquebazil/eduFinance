@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "EduFinance",
+    "slug": "edufinance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./icon-512.png",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.edufinance.app"
+    },
+    "android": {
+      "package": "br.com.edufinance.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/android-adaptive-foreground.png",
+        "backgroundImage": "./assets/icons/android-adaptive-background.png"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bd2fcc74-fa37-40a0-afab-a9765427a511"
+      }
+    }
+  }
+}
