@@ -2,6 +2,7 @@
 /* ==== MODAIS ==== */
 
 function modal(initialType = 'expense', selectedCategoryName = '') {
+  const isLaunchPage = page === 'launch';
   /* ── estado interno ───────────────────────────────────────────── */
   let type         = initialType;
   let selected     = selectableCategories(initialType).find(c => c.name === selectedCategoryName) || selectableCategories(initialType)[0];
@@ -9,7 +10,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   let payment      = 'account';
   let installments = 1;
 
-  const root      = document.getElementById('modalRoot');
+  const root      = document.getElementById(isLaunchPage ? 'screen' : 'modalRoot');
   const cards     = state.accounts.filter(isCredit);
   const nonCredit = state.accounts.filter(a => !isCredit(a));
   const defaultAccountId = nonCredit[0]?.id || 'bank';
@@ -27,11 +28,17 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   const show = (sel, v) => { const el = $(sel); if (el) el.style.display = v ? '' : 'none'; };
 
   /* ── monta o HTML UMA ÚNICA VEZ ──────────────────────────────── */
-  root.innerHTML = `
+  root.innerHTML = isLaunchPage ? `
+  <section class="launch-page">
+    <header class="launch-header"><button type="button" class="launch-back" id="cancelLaunch" aria-label="Voltar">‹</button><h1>Novo lançamento</h1></header>
+    <form class="launch-form" id="_msForm"></form>
+  </section>` : `
   <div class="modal-backdrop" id="_msBd">
-    <form class="modal" id="_msForm">
+    <form class="modal" id="_msForm"></form>
+  </div>`;
+  root.querySelector('#_msForm').insertAdjacentHTML('afterbegin', `
       <div class="handle"></div>
-      <h2 class="modal-title">Novo lançamento</h2>
+      ${isLaunchPage ? '' : '<h2 class="modal-title">Novo lançamento</h2>'}
 
       <!-- tipo -->
       <div class="type-switch">
@@ -97,8 +104,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
       </label>
       <button class="save">Salvar lançamento</button>
       <button type="button" class="add-category-from-launch" id="addCategoryFromLaunch">Adicionar nova categoria</button>
-    </form>
-  </div>`;
+  `);
 
   /* ── atualiza APENAS classes e display — sem recriar backdrop ── */
   function updateView() {
@@ -171,9 +177,8 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     installments = Number(e.target.value);
   });
 
-  $('#_msBd').addEventListener('click', e => {
-    if (e.target === e.currentTarget) root.innerHTML = '';
-  });
+  if (isLaunchPage) root.querySelector('#cancelLaunch').addEventListener('click', () => { page = 'home'; render(); });
+  else $('#_msBd').addEventListener('click', e => { if (e.target === e.currentTarget) root.innerHTML = ''; });
 
   $('#_msForm').addEventListener('submit', e => {
     e.preventDefault();
@@ -215,6 +220,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
 
     persist();
     if (navigator.vibrate) navigator.vibrate([8, 30, 8]);
+    if (isLaunchPage) page = 'home';
     root.innerHTML = '';
     render();
     toast(payment === 'credit' && type === 'expense' && installments > 1
@@ -658,10 +664,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
           item.icon = category.icon;
         }
       });
-      if (previousName !== name && Object.prototype.hasOwnProperty.call(state.categoryBudgets, previousName)) {
-        state.categoryBudgets[name] = state.categoryBudgets[previousName];
-        delete state.categoryBudgets[previousName];
-      }
+      renameCategoryBudgets(type, previousName, name);
     } else {
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false, suggestions: customSuggestions.map(([text]) => text) });
     }
@@ -787,7 +790,7 @@ function accountModal(existingId = null) {
 }
 
 function categoryBudgetModal(catName = '', type = 'expense') {
-  const budgetMap = type === 'income' ? state.incomeCategoryBudgets : state.categoryBudgets;
+  const budgetMap = categoryBudgetMap(type, state.selectedMonth, true);
   if (!catName) {
     const available = selectableCategories(type).filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
     if (!available.length) return toast('Não há outras categorias disponíveis para criar uma meta.');

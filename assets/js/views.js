@@ -82,7 +82,7 @@ function transactionHTML(t) {
   const instBadge = t.installment ? `<span class="badge-installment">${t.installment.current}/${t.installment.total}</span>` : '';
   const cardBadge = isCardTx ? `<span class="badge-card">💳</span>` : '';
 
-  return `<article class="transaction" data-tx-id="${escapeHtml(t.id)}">
+  return `<article class="transaction" data-tx-id="${escapeHtml(t.id)}" title="Segure por um instante para editar">
     <div class="category-icon">${escapeHtml(t.icon || '↔️')}</div>
     <div class="transaction-info">
       <div class="transaction-name">${escapeHtml(t.category || 'Transferência')}${instBadge}${cardBadge}</div>
@@ -331,7 +331,7 @@ function categoryDetail() {
       <div class="category-detail-entries">
         ${sortedEntries.length ? sortedEntries.map(t => {
           const share = total ? Number(t.amount) / total * 100 : 0;
-          return `<article class="category-detail-entry" data-tx-id="${escapeHtml(t.id)}">
+          return `<article class="category-detail-entry" data-tx-id="${escapeHtml(t.id)}" title="Segure por um instante para editar">
             <span class="category-detail-entry-icon">${escapeHtml(t.icon || category?.icon || '🏷️')}</span>
             <div class="category-detail-entry-info">
               <strong>${escapeHtml(t.note || t.category || selectedCategoryName)}</strong>
@@ -349,7 +349,7 @@ function categoryDetail() {
 function budget() {
   const type = budgetType;
   const isIncome = type === 'income';
-  const budgetMap = isIncome ? state.incomeCategoryBudgets : state.categoryBudgets;
+  const budgetMap = categoryBudgetMap(type);
   const actualLabel = isIncome ? 'recebido' : 'utilizado';
   const categories = state.categories[type] || [];
   const byCategory = {};
@@ -987,6 +987,7 @@ function render() {
   if (page !== 'lock') applyRecurring();
   const screens = {
     home, stats, categoryDetail, budget, settings, privacy: privacyPage, lock: lockScreen, themes: themesPage, fontSizePage, accounts,
+    launch: () => '',
     cardDetail: cardDetailPage,
     cardInvoice: cardInvoicePage,
     balanceDisplay: balanceDisplayPage,
@@ -1006,6 +1007,7 @@ function render() {
   screen.innerHTML = html;
   screen.style.animation = '';
   document.body.dataset.appLocked = page === 'lock' && Boolean(state.pinLock?.enabled) ? 'true' : 'false';
+  document.body.dataset.appPage = page;
   maskVisibleAmounts(screen);
 
   if (window._recurringGenerated) {

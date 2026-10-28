@@ -1016,6 +1016,20 @@ body[data-app-locked="true"] .app-shell { min-height: 100dvh; padding-bottom: 0;
   margin: 0 auto 18px;
 }
 
+/* Tela dedicada de criação de lançamento */
+.launch-page { min-height: 100dvh; padding: max(16px, env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom)); background: var(--bg); }
+.launch-header { display:flex; align-items:center; gap:12px; max-width:680px; margin:0 auto 18px; }
+.launch-header h1 { margin:0; font:700 1.25rem "Plus Jakarta Sans",sans-serif; }
+.launch-back { width:40px; height:40px; border:0; border-radius:13px; background:var(--card); color:var(--ink); font-size:1.8rem; cursor:pointer; }
+.launch-form { width:min(100%,680px); margin:0 auto; padding:20px; border-radius:var(--radius-xl); background:var(--card); box-shadow:var(--shadow, 0 10px 35px rgba(15,23,42,.08)); }
+body[data-app-page="launch"] .add-button { display:none; }
+@media (max-width: 959px) {
+  body[data-app-page="launch"] .bottom-nav { display:none; }
+}
+@media (min-width: 960px) {
+  body[data-app-page="launch"] .launch-page { min-height: calc(100dvh - 76px); }
+}
+
 .modal-title {
   font: 700 1.25rem "Plus Jakarta Sans", sans-serif;
   margin: 0 0 18px;

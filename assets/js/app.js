@@ -80,6 +80,54 @@ function sameSecret(a, b) {
   return diff === 0;
 }
 
+let transactionPress = null;
+let suppressNextClick = false;
+let suppressClickTimer = null;
+const cancelTransactionPress = () => {
+  if (transactionPress?.timer) clearTimeout(transactionPress.timer);
+  transactionPress = null;
+};
+
+document.addEventListener('pointerdown', e => {
+  const tx = e.target.closest?.('[data-tx-id]');
+  if (!tx || e.button !== 0) return;
+  cancelTransactionPress();
+  const press = { tx, pointerId: e.pointerId, x: e.clientX, y: e.clientY, opened: false, timer: null };
+  transactionPress = press;
+  press.timer = setTimeout(() => {
+    if (transactionPress !== press) return;
+    press.opened = true;
+    editTransactionModal(tx.dataset.txId);
+    if (navigator.vibrate) navigator.vibrate(12);
+  }, 550);
+});
+
+document.addEventListener('pointerup', e => {
+  if (!transactionPress || transactionPress.pointerId !== e.pointerId) return;
+  if (transactionPress.opened) {
+    suppressNextClick = true;
+    clearTimeout(suppressClickTimer);
+    suppressClickTimer = setTimeout(() => { suppressNextClick = false; }, 1200);
+  }
+  cancelTransactionPress();
+});
+
+document.addEventListener('pointercancel', cancelTransactionPress);
+document.addEventListener('pointermove', e => {
+  if (!transactionPress || transactionPress.pointerId !== e.pointerId) return;
+  if (Math.hypot(e.clientX - transactionPress.x, e.clientY - transactionPress.y) > 12) cancelTransactionPress();
+});
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest?.('[data-tx-id]')) e.preventDefault();
+});
+document.addEventListener('click', e => {
+  if (!suppressNextClick) return;
+  suppressNextClick = false;
+  clearTimeout(suppressClickTimer);
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
+
 document.addEventListener('click', e => {
   const soundControl = e.target.closest?.('button, [role="button"], a');
   if (e.isTrusted && state.soundEnabled && soundControl && !soundControl.disabled) playTapSound();
@@ -200,9 +248,9 @@ document.addEventListener('click', e => {
   if (detailSort) { categoryDetailSort = detailSort.dataset.detailSort; render(); return; }
 
   const txEl = e.target.closest('[data-tx-id]');
-  if (txEl) { editTransactionModal(txEl.dataset.txId); return; }
+  if (txEl) return;
 
-  if (e.target.closest('#addTransaction')) { modal(); return; }
+  if (e.target.closest('#addTransaction')) { page = 'launch'; render(); modal(); return; }
   if (e.target.closest('#searchBtn'))      { searchModal(); return; }
   if (e.target.closest('#monthPickerBtn')) { monthPickerModal(); return; }
 
@@ -287,7 +335,7 @@ document.addEventListener('click', e => {
       () => {
         state.categories[remove.dataset.removeCategory] =
           state.categories[remove.dataset.removeCategory].filter(c => c.name !== remove.dataset.categoryName);
-        delete state.categoryBudgets[remove.dataset.categoryName];
+        removeCategoryBudgets(remove.dataset.removeCategory, remove.dataset.categoryName);
         persist(); render(); toast('Categoria removida');
       },
       'Remover'
@@ -415,7 +463,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   const clickable = e.target.closest?.('[data-tx-id],[data-edit-account],[data-edit-card],[data-open-card],[data-cat-budget]');
   if (clickable && clickable === e.target && (e.key === 'Enter' || e.key === ' ')) {
-    e.preventDefault(); clickable.click(); return;
+    e.preventDefault();
+    if (clickable.matches('[data-tx-id]')) editTransactionModal(clickable.dataset.txId);
+    else clickable.click();
+    return;
   }
 
   const modalRoot = document.getElementById('modalRoot');

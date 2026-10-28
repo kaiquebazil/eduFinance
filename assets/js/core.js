@@ -109,7 +109,7 @@ Object.values(categories).forEach(list => list.sort((a, b) =>
 
 /* ==== ESTADO INICIAL (seed) ==== */
 const seed = {
-  version: 7,
+  version: 8,
   theme: 'default',
   colorMode: 'light',
   fontScale: 1,
@@ -120,8 +120,8 @@ const seed = {
   pinLock: null,
   selectedMonth: currentMonth(),
   budget: 0,
-  categoryBudgets: {},
-  incomeCategoryBudgets: {},
+  categoryBudgetsByMonth: {},
+  incomeCategoryBudgetsByMonth: {},
   categories,
   accounts: [
     { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
@@ -158,12 +158,17 @@ function sanitizeState(s) {
   const fontScale = Number(s.fontScale ?? 1);
   s.fontScale = Number.isFinite(fontScale) ? Math.max(0, Math.min(fontScaleOptions.length - 1, Math.round(fontScale))) : 1;
   s.budget = num(s.budget);
-  s.categoryBudgets = Object.fromEntries(
-    Object.entries(s.categoryBudgets || {}).map(([k, v]) => [str(k, 40), num(v)])
+  const monthlyBudgets = value => Object.fromEntries(
+    Object.entries(value || {})
+      .filter(([month, map]) => /^\d{4}-\d{2}$/.test(month) && map && typeof map === 'object' && !Array.isArray(map))
+      .map(([month, map]) => [month, Object.fromEntries(
+        Object.entries(map).map(([name, amount]) => [str(name, 40), num(amount)])
+      )])
   );
-  s.incomeCategoryBudgets = Object.fromEntries(
-    Object.entries(s.incomeCategoryBudgets || {}).map(([k, v]) => [str(k, 40), num(v)])
-  );
+  s.categoryBudgetsByMonth = monthlyBudgets(s.categoryBudgetsByMonth);
+  s.incomeCategoryBudgetsByMonth = monthlyBudgets(s.incomeCategoryBudgetsByMonth);
+  delete s.categoryBudgets;
+  delete s.incomeCategoryBudgets;
   s.categories = {
     expense: (s.categories?.expense || []).map(cat),
     income:  (s.categories?.income  || []).map(cat)
@@ -219,7 +224,7 @@ function migrate(old) {
   if (!old) return structuredClone(seed);
   const savedBudgets = { ...(old.categoryBudgets || {}) };
   const presetBudgets = { Alimentação: 400, Casa: 1000, Saúde: 200, Transporte: 300 };
-  Object.entries(presetBudgets).forEach(([name, amount]) => {
+  if (old.version < 7) Object.entries(presetBudgets).forEach(([name, amount]) => {
     if (Number(savedBudgets[name]) === amount) delete savedBudgets[name];
   });
   const savedCategories = old.categories || {};
@@ -236,15 +241,16 @@ function migrate(old) {
   Object.values(mergedCategories).forEach(list => list.sort((a, b) =>
     String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' })
   ));
+  const selectedMonth = old.selectedMonth || currentMonth();
+  const legacyIncomeBudgets = old.incomeCategoryBudgets || {};
   const base = {
     ...seed,
     ...old,
-    version: 7,
-    selectedMonth: old.selectedMonth || currentMonth(),
+    version: 8,
+    selectedMonth,
     budget: 0,
-    categoryBudgets: old.version < 7 && !Object.values(savedBudgets).some(amount => Number(amount) > 0)
-      ? seed.categoryBudgets
-      : (old.categoryBudgets == null ? seed.categoryBudgets : savedBudgets),
+    categoryBudgetsByMonth: old.categoryBudgetsByMonth || (Object.keys(savedBudgets).length ? { [selectedMonth]: savedBudgets } : {}),
+    incomeCategoryBudgetsByMonth: old.incomeCategoryBudgetsByMonth || (Object.keys(legacyIncomeBudgets).length ? { [selectedMonth]: legacyIncomeBudgets } : {}),
     accounts: old.accounts && old.accounts.length ? old.accounts : seed.accounts,
     categories: mergedCategories,
     recurring: Array.isArray(old.recurring) ? old.recurring : []
@@ -255,23 +261,19 @@ function migrate(old) {
     id:        String(t.id || makeId()),
     accountId: t.accountId || 'bank'
   }));
-  const validGoalNames = new Set(base.categories.expense.map(c => c.name));
-  const goals = Object.entries(base.categoryBudgets)
-    .filter(([name, amount]) => validGoalNames.has(name) && Number(amount) >= 0)
-    .map(([name, amount]) => {
-      const spent = base.transactions.reduce((sum, tx) =>
-        tx.type === 'expense' && tx.category === name && tx.date?.startsWith(base.selectedMonth)
-          ? sum + Number(tx.amount || 0) : sum, 0);
-      return { name, amount: Number(amount), progress: spent / Number(amount) };
-    })
-    .sort((a, b) => b.progress - a.progress);
-  base.categoryBudgets = Object.fromEntries(goals.map(goal => [goal.name, goal.amount]));
-  const validIncomeGoalNames = new Set(base.categories.income.map(c => c.name));
-  base.incomeCategoryBudgets = Object.fromEntries(
-    Object.entries(base.incomeCategoryBudgets || {})
-      .filter(([name, amount]) => validIncomeGoalNames.has(name) && Number(amount) >= 0)
-      .map(([name, amount]) => [name, Number(amount)])
+  const validNames = {
+    expense: new Set(base.categories.expense.map(c => c.name)),
+    income: new Set(base.categories.income.map(c => c.name))
+  };
+  const cleanMonthlyBudgets = (budgets, type) => Object.fromEntries(
+    Object.entries(budgets || {}).map(([month, monthBudgets]) => [month,
+      Object.fromEntries(Object.entries(monthBudgets || {})
+        .filter(([name, amount]) => validNames[type].has(name) && Number(amount) >= 0)
+        .map(([name, amount]) => [name, Number(amount)]))
+    ])
   );
+  base.categoryBudgetsByMonth = cleanMonthlyBudgets(base.categoryBudgetsByMonth, 'expense');
+  base.incomeCategoryBudgetsByMonth = cleanMonthlyBudgets(base.incomeCategoryBudgetsByMonth, 'income');
   return sanitizeState(base);
 }
 
@@ -285,6 +287,27 @@ let selectedCardId = '';
 let selectedCategoryName = '';
 let selectedCategoryType = 'expense';
 let categoryDetailSort = 'date';
+
+function categoryBudgetMap(type, month = state.selectedMonth, create = false) {
+  const key = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
+  if (create) state[key][month] ||= {};
+  return state[key][month] || {};
+}
+
+function renameCategoryBudgets(type, previousName, nextName) {
+  const key = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
+  Object.values(state[key]).forEach(monthMap => {
+    if (previousName !== nextName && Object.prototype.hasOwnProperty.call(monthMap, previousName)) {
+      monthMap[nextName] = monthMap[previousName];
+      delete monthMap[previousName];
+    }
+  });
+}
+
+function removeCategoryBudgets(type, name) {
+  const key = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
+  Object.values(state[key]).forEach(monthMap => delete monthMap[name]);
+}
 
 function persist() {
   localStorage.setItem(KEY, JSON.stringify(state));
