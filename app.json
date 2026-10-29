@@ -8,10 +8,10 @@
     "icon": "./icon-512.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.edufinance.app"
+      "bundleIdentifier": "com.kaiquebazil.edufinance"
     },
     "android": {
-      "package": "br.com.edufinance.app",
+      "package": "com.kaiquebazil.edufinance",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/android-adaptive-foreground.png",
         "backgroundImage": "./assets/icons/android-adaptive-background.png"
