@@ -247,6 +247,12 @@ document.addEventListener('click', e => {
   const detailSort = e.target.closest('[data-detail-sort]');
   if (detailSort) { categoryDetailSort = detailSort.dataset.detailSort; render(); return; }
 
+  const invoiceEdit = e.target.closest('[data-invoice-edit]');
+  if (invoiceEdit) { editTransactionModal(invoiceEdit.dataset.invoiceEdit); return; }
+
+  const invoiceDelete = e.target.closest('[data-invoice-delete]');
+  if (invoiceDelete) { deleteTransaction(invoiceDelete.dataset.invoiceDelete); return; }
+
   const txEl = e.target.closest('[data-tx-id]');
   if (txEl) return;
 
@@ -434,7 +440,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.pinLock?.enabled && page !== 'lock') {
     page = 'lock';
     render();
-  } else if (!document.hidden && page !== 'lock') {
+  } else if (!document.hidden && page !== 'lock' && page !== 'launch') {
     render();
   }
 });

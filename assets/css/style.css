@@ -680,12 +680,14 @@ button { -webkit-appearance: none; appearance: none; }
 .card-invoice-summary .card-invoice-paid { color: var(--income); }
 .card-invoice-paid-message { padding-top: 5px; color: var(--income); text-align: center; font-size: .875rem; font-weight: 700; }
 .card-invoice-count { color: var(--muted); font-size: .8125rem; }
-.card-invoice-purchase { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.card-invoice-purchase { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
 .card-invoice-purchase-info { min-width: 0; flex: 1; }
 .card-invoice-purchase-info strong,
 .card-invoice-purchase-info small { display: block; }
 .card-invoice-purchase-info small { margin-top: 4px; color: var(--muted); font-size: .6875rem; }
 .card-invoice-purchase > b { flex: 0 0 auto; color: var(--expense); font-size: .8125rem; }
+.card-invoice-actions { display: flex; justify-content: flex-end; gap: 8px; width: 100%; }
+.card-invoice-actions button { min-height: 34px; margin: 0; padding: 6px 12px; font-size: .75rem; }
 
 /* ====== CHARTS ====== */
 .chart-card {
@@ -1179,7 +1181,7 @@ body[data-app-page="launch"] .add-button { display:none; }
   stroke-linecap: round;
   pointer-events: none;
 }
-#modalRoot .category-search input {
+.category-search input {
   width: 100%;
   min-height: 42px;
   padding: 9px 12px 9px 38px;
@@ -1189,7 +1191,11 @@ body[data-app-page="launch"] .add-button { display:none; }
   color: var(--ink);
   font: inherit;
 }
-#modalRoot .category-search input:focus { outline: 2px solid var(--blue-300); outline-offset: 1px; }
+.category-search input:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
 .category-search-empty {
   padding: 8px 2px;
   color: var(--muted);

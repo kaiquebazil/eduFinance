@@ -43,6 +43,11 @@ const startOfWeek = () => {
 const escapeHtml = v => String(v ?? '').replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
+const normalizeSearchText = value => String(value ?? '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLocaleLowerCase('pt-BR');
+
 // --- Parse de moeda robusto: aceita R$ 1.250,00 / 1250.00 / 125,00 ---
 function parseMoney(raw) {
   let s = String(raw ?? '').trim().replace(/[^\d.,]/g, '');

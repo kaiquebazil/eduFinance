@@ -787,6 +787,10 @@ function cardInvoicePage() {
         <span class="s-icon">${escapeHtml(tx.icon || card.icon)}</span>
         <span class="card-invoice-purchase-info"><strong>${escapeHtml(tx.category || 'Compra')}</strong><small>${escapeHtml(description || installmentLabel)} · ${installmentLabel} · vence ${dateFull(tx.date)}</small></span>
         <b>${money(tx.amount)}</b>
+        <div class="card-invoice-actions">
+          <button type="button" class="modal-secondary" data-invoice-edit="${escapeHtml(tx.id)}">Editar</button>
+          <button type="button" class="modal-secondary" data-invoice-delete="${escapeHtml(tx.id)}">Excluir</button>
+        </div>
       </article>`;
     }).join('')}</div>` : '<div class="empty"><b>Nenhuma compra nesta fatura</b>As parcelas futuras aparecerão aqui quando você mudar o mês.</div>'}
   </div>`;
@@ -810,6 +814,7 @@ function invoicesPage() {
     ${cards.length ? cards.map(c => {
       const invoice   = creditInvoiceTotal(c, state.selectedMonth);
       const used      = creditUsed(c);
+      const available = Number(c.limit || 0) - used;
       const remaining = invoiceRemaining(c, state.selectedMonth);
       return `
       <div class="panel" style="margin-bottom:14px">
@@ -826,6 +831,10 @@ function invoicesPage() {
             <small style="color:var(--muted);font-size: 0.6875rem">Limite comprometido</small>
             <div class="stat-number" style="margin:4px 0">${money(used)}</div>
           </div>
+        </div>
+        <div class="row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">
+          <span>Limite disponível</span>
+          <strong style="color:${available < 0 ? 'var(--expense)' : 'var(--income)'}">${money(available)}</strong>
         </div>
         ${remaining > 0
           ? `<button class="save" data-pay-invoice="${escapeHtml(c.id)}" data-invoice-month="${state.selectedMonth}" data-invoice-amount="${remaining}">💸 Pagar ${money(remaining)} · ${monthLabel(state.selectedMonth)}</button>`

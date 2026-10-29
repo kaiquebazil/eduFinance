@@ -128,8 +128,8 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     if (!cats.some(c => c.name === selected?.name)) selected = cats[0];
     const catGrid = $('#_ms_cats');
     if (catGrid) {
-      const query = categoryQuery.trim().toLocaleLowerCase('pt-BR');
-      const visibleCats = query ? cats.filter(c => c.name.toLocaleLowerCase('pt-BR').includes(query)) : cats;
+      const query = normalizeSearchText(categoryQuery.trim());
+      const visibleCats = query ? cats.filter(c => normalizeSearchText(c.name).includes(query)) : cats;
       catGrid.innerHTML = visibleCats.length ? visibleCats.map(c =>
         `<button type="button" class="cat-choice${selected.name === c.name ? ' selected' : ''}" data-cat="${escapeHtml(c.name)}" data-icon="${escapeHtml(c.icon)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</button>`
       ).join('') : '<span class="category-search-empty">Nenhuma categoria encontrada.</span>';
@@ -427,14 +427,14 @@ function searchModal() {
   const count   = root.querySelector('#searchCount');
 
   function doSearch() {
-    const q = input.value.trim().toLowerCase();
+    const q = normalizeSearchText(input.value.trim());
     if (!q) {
       count.textContent  = '';
       results.innerHTML  = '<div class="empty">Digite para buscar...</div>';
       return;
     }
     const found = state.transactions.filter(t => {
-      const hay = `${t.category || ''} ${t.note || ''} ${t.amount} ${accountName(t.accountId)}`.toLowerCase();
+      const hay = normalizeSearchText(`${t.category || ''} ${t.note || ''} ${t.amount} ${accountName(t.accountId)}`);
       return hay.includes(q);
     }).sort((a, b) => b.date.localeCompare(a.date));
 
