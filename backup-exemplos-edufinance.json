@@ -1,0 +1,353 @@
+{
+  "transactions": [
+    {
+      "category": "Salário",
+      "icon": "💼",
+      "accountId": "conta-principal",
+      "id": "ex-salario-out",
+      "date": "2026-10-05",
+      "note": "Salário mensal",
+      "amount": 7200,
+      "type": "income"
+    },
+    {
+      "category": "Outros",
+      "icon": "💰",
+      "accountId": "conta-principal",
+      "id": "ex-freela-out",
+      "date": "2026-10-18",
+      "note": "Projeto de design",
+      "amount": 950,
+      "type": "income"
+    },
+    {
+      "category": "Moradia",
+      "icon": "🏠",
+      "accountId": "conta-principal",
+      "id": "ex-aluguel-out",
+      "date": "2026-10-06",
+      "note": "Aluguel outubro",
+      "amount": 1850,
+      "type": "expense"
+    },
+    {
+      "category": "Moradia",
+      "icon": "🏠",
+      "accountId": "conta-principal",
+      "id": "ex-luz-out",
+      "date": "2026-10-09",
+      "note": "Conta de luz",
+      "amount": 168.4,
+      "type": "expense"
+    },
+    {
+      "category": "Alimentação",
+      "icon": "🍽️",
+      "accountId": "conta-principal",
+      "id": "ex-mercado-out",
+      "date": "2026-10-10",
+      "note": "Compras do mês",
+      "amount": 432.76,
+      "type": "expense"
+    },
+    {
+      "category": "Saúde",
+      "icon": "🩺",
+      "accountId": "conta-principal",
+      "id": "ex-farmacia-out",
+      "date": "2026-10-12",
+      "note": "Farmácia",
+      "amount": 76.9,
+      "type": "expense"
+    },
+    {
+      "category": "Transporte",
+      "icon": "🚕",
+      "accountId": "conta-principal",
+      "id": "ex-onibus-out",
+      "date": "2026-10-13",
+      "note": "Cartão de transporte",
+      "amount": 45,
+      "type": "expense"
+    },
+    {
+      "category": "Lanches",
+      "icon": "🍔",
+      "accountId": "carteira",
+      "id": "ex-cafe-cash",
+      "date": "2026-10-15",
+      "note": "Café e pão de queijo",
+      "amount": 18.5,
+      "type": "expense"
+    },
+    {
+      "category": "Assinaturas",
+      "icon": "🔄",
+      "accountId": "conta-principal",
+      "id": "ex-stream-out",
+      "date": "2026-10-16",
+      "note": "Streaming mensal",
+      "amount": 39.9,
+      "type": "expense"
+    },
+    {
+      "category": "Lanches",
+      "icon": "🍔",
+      "accountId": "nubank",
+      "id": "ex-nub-lanche-1",
+      "date": "2026-11-25",
+      "note": "Lanche na faculdade",
+      "amount": 32.5,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Lanches",
+      "icon": "🍔",
+      "accountId": "nubank",
+      "id": "ex-nub-lanche-2",
+      "date": "2026-11-25",
+      "note": "Hambúrguer",
+      "amount": 28.9,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Alimentação",
+      "icon": "🍽️",
+      "accountId": "nubank",
+      "id": "ex-nub-food",
+      "date": "2026-11-25",
+      "note": "Mercado express",
+      "amount": 145.7,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Transporte",
+      "icon": "🚕",
+      "accountId": "nubank",
+      "id": "ex-nub-mobility",
+      "date": "2026-11-25",
+      "note": "Corrida por aplicativo",
+      "amount": 24.8,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Saúde",
+      "icon": "🩺",
+      "accountId": "nubank",
+      "installment": {
+        "totalAmount": 130.16,
+        "purchaseDate": "2026-10-08",
+        "current": 1,
+        "total": 2
+      },
+      "id": "ex-nub-health",
+      "date": "2026-11-25",
+      "note": "Shape V (1/2)",
+      "amount": 65.08,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Roupas",
+      "icon": "👕",
+      "accountId": "nubank",
+      "id": "ex-nub-clothes",
+      "date": "2026-11-25",
+      "note": "Camiseta",
+      "amount": 119.99,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Assinaturas",
+      "icon": "🔄",
+      "accountId": "nubank",
+      "id": "ex-nub-sub",
+      "date": "2026-11-25",
+      "note": "Música premium",
+      "amount": 29.9,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Presentes",
+      "icon": "🎁",
+      "accountId": "nubank",
+      "id": "ex-nub-gift",
+      "date": "2026-11-25",
+      "note": "Presente de aniversário",
+      "amount": 54.9,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Educação",
+      "icon": "🎓",
+      "accountId": "visa",
+      "installment": {
+        "totalAmount": 540,
+        "purchaseDate": "2026-09-17",
+        "current": 2,
+        "total": 3
+      },
+      "id": "ex-visa-edu",
+      "date": "2026-11-17",
+      "note": "Material do curso (2/3)",
+      "amount": 180,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Transporte",
+      "icon": "🚕",
+      "accountId": "visa",
+      "id": "ex-visa-transport",
+      "date": "2026-11-17",
+      "note": "Combustível",
+      "amount": 87.3,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Alimentação",
+      "icon": "🍽️",
+      "accountId": "visa",
+      "id": "ex-visa-food",
+      "date": "2026-11-17",
+      "note": "Jantar com amigos",
+      "amount": 96.4,
+      "type": "expense",
+      "invoiceMonth": "2026-11"
+    },
+    {
+      "category": "Lanches",
+      "icon": "🍔",
+      "accountId": "nubank",
+      "id": "ex-nub-dec-lanche",
+      "date": "2026-12-25",
+      "note": "Lanche futuro",
+      "amount": 25,
+      "type": "expense",
+      "invoiceMonth": "2026-12"
+    },
+    {
+      "note": "Pagamento parcial fatura outubro",
+      "date": "2026-10-25",
+      "fromAccountId": "conta-principal",
+      "amount": 300,
+      "category": "Pagamento fatura",
+      "accountId": "conta-principal",
+      "cardId": "nubank",
+      "id": "ex-pagamento",
+      "icon": "💳",
+      "invoiceMonth": "2026-10",
+      "type": "invoice_payment"
+    },
+    {
+      "note": "Dinheiro para carteira",
+      "date": "2026-10-20",
+      "fromAccountId": "conta-principal",
+      "amount": 100,
+      "category": "Transferência",
+      "toAccountId": "carteira",
+      "id": "ex-transfer",
+      "icon": "↔️",
+      "type": "transfer"
+    }
+  ],
+  "version": 8,
+  "categoryBudgetsByMonth": {
+    "2026-11": {
+      "Lanches": 180,
+      "Assinaturas": 100,
+      "Alimentação": 700,
+      "Transporte": 350,
+      "Saúde": 250
+    }
+  },
+  "homeBalanceMode": "month",
+  "budget": 3000,
+  "fontScale": 1,
+  "colorMode": "light",
+  "theme": "default",
+  "incomeCategoryBudgetsByMonth": {
+    "2026-11": {
+      "Salário": 7500
+    }
+  },
+  "recurring": [
+    {
+      "day": 6,
+      "note": "Aluguel",
+      "lastGenerated": "2026-11",
+      "startMonth": "2026-11",
+      "amount": 1850,
+      "category": "Moradia",
+      "accountId": "conta-principal",
+      "id": "ex-rec-rent",
+      "icon": "🏠",
+      "active": true,
+      "type": "expense"
+    },
+    {
+      "day": 16,
+      "note": "Música premium",
+      "lastGenerated": "2026-11",
+      "startMonth": "2026-11",
+      "amount": 29.9,
+      "category": "Assinaturas",
+      "accountId": "conta-principal",
+      "id": "ex-rec-music",
+      "icon": "🔄",
+      "active": true,
+      "type": "expense"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "conta-principal",
+      "name": "Conta principal",
+      "icon": "🏦",
+      "kind": "bank",
+      "initialBalance": 8200
+    },
+    {
+      "id": "carteira",
+      "name": "Carteira",
+      "icon": "💵",
+      "kind": "cash",
+      "initialBalance": 250
+    },
+    {
+      "limit": 8000,
+      "initialBalance": 0,
+      "closingDay": 20,
+      "dueDay": 25,
+      "id": "nubank",
+      "icon": "💳",
+      "brand": "Mastercard",
+      "name": "Nubank",
+      "kind": "credit"
+    },
+    {
+      "limit": 12000,
+      "initialBalance": 0,
+      "closingDay": 10,
+      "dueDay": 17,
+      "id": "visa",
+      "icon": "💳",
+      "brand": "Visa",
+      "name": "Cartão Visa",
+      "kind": "credit"
+    }
+  ],
+  "categories": {
+    "expense": [],
+    "income": []
+  },
+  "selectedMonth": "2026-11"
+}

@@ -456,10 +456,12 @@ function applyRecurring() {
         t.recurringId === r.id && monthOf(t.date) === m
       );
       if (!alreadyGenerated) {
+        const creditCard = isCredit(state.accounts.find(account => account.id === r.accountId));
         state.transactions.push({
           id: makeId(), type: r.type, category: r.category, icon: r.icon,
           accountId: r.accountId, amount: r.amount, date: `${m}-${day}`,
-          note: r.note, recurringId: r.id
+          note: r.note, recurringId: r.id,
+          ...(creditCard ? { invoiceMonth: m } : {})
         });
         generated++;
         changed = true;

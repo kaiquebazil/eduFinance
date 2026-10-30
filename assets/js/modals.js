@@ -84,7 +84,6 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
             </select>
           </label>
           <label class="field"><span>Data do primeiro vencimento</span><input name="firstDueDate" id="_ms_first_due" type="date" value="${cards.length ? defaultFirstDueDate(cards[0]) : today()}" required></label>
-          <label class="field"><span>Cartão emprestado para (opcional)</span><input name="borrowedTo" maxlength="80" placeholder="Ex.: minha irmã"></label>
         </div>
 
         <!-- repetir todo mês -->
@@ -121,7 +120,15 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
     show('#_ms_normal',   true);
     show('#_ms_credit',   isCreditPay);
     show('#_ms_acct',     !isCreditPay);
-    show('#_ms_repeat',   !isCreditPay);
+    show('#_ms_repeat',   type === 'expense');
+    const repeatLabel = $('#_ms_repeat span');
+    if (repeatLabel) repeatLabel.textContent = isCreditPay ? 'Repetir todo mês no cartão (compra à vista)' : 'Repetir todo mês';
+    const installmentSelect = $('[name=installments]');
+    if (installmentSelect) {
+      if (isCreditPay && $('[name=repeat]').checked && installmentSelect.value !== '1') installmentSelect.value = '1';
+      installmentSelect.disabled = isCreditPay && $('[name=repeat]').checked;
+      installments = Number(installmentSelect.value) || 1;
+    }
 
     /* recria apenas o interior do grid de categorias */
     const cats    = selectableCategories(type, selected?.name || '');
@@ -176,6 +183,7 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
   $('[name=installments]').addEventListener('change', e => {
     installments = Number(e.target.value);
   });
+  $('[name=repeat]').addEventListener('change', updateView);
 
   if (isLaunchPage) root.querySelector('#cancelLaunch').addEventListener('click', () => { page = 'home'; render(); });
   else $('#_msBd').addEventListener('click', e => { if (e.target === e.currentTarget) root.innerHTML = ''; });
@@ -192,11 +200,27 @@ function modal(initialType = 'expense', selectedCategoryName = '') {
       const n       = Number(f.get('installments')) || 1;
       const firstDueDate = f.get('firstDueDate');
       if (!firstDueDate || firstDueDate < date) return toast('O primeiro vencimento não pode ser anterior à compra.');
-      const entries = buildInstallments({
-        account: card, category: selected.name, icon: selected.icon,
-        note: f.get('note'), total: amount, date, installments: n, firstDueDate,
-        borrowedTo: String(f.get('borrowedTo') || '').trim()
-      });
+      let entries;
+      if (f.get('repeat')) {
+        const recurringId = makeId();
+        entries = [{
+          id: makeId(), type: 'expense', category: selected.name, icon: selected.icon,
+          accountId: card.id, amount, date: firstDueDate, invoiceMonth: monthOf(firstDueDate),
+          note: f.get('note'), recurringId
+        }];
+        state.recurring.push({
+          id: recurringId, type: 'expense', category: selected.name, icon: selected.icon,
+          accountId: card.id, amount, day: Number(firstDueDate.slice(8, 10)),
+          note: f.get('note'), startMonth: monthOf(firstDueDate),
+          lastGenerated: monthOf(firstDueDate), active: true
+        });
+      } else {
+        entries = buildInstallments({
+          account: card, category: selected.name, icon: selected.icon,
+          note: f.get('note'), total: amount, date, installments: n, firstDueDate,
+          borrowedTo: String(f.get('borrowedTo') || '').trim()
+        });
+      }
       state.transactions.push(...entries);
       state.selectedMonth = currentMonth();
     } else {

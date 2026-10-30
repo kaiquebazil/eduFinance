@@ -678,6 +678,10 @@ button { -webkit-appearance: none; appearance: none; }
 .card-invoice-summary { display: grid; gap: 10px; margin-bottom: 22px; }
 .card-invoice-summary .save { margin-top: 4px; }
 .card-invoice-summary .card-invoice-paid { color: var(--income); }
+.card-invoice-categories { display: grid; gap: 10px; margin-bottom: 22px; }
+.card-invoice-categories .row { color: var(--muted); font-size: .875rem; }
+.card-invoice-categories .row small { margin-left: 5px; color: var(--muted); font-size: .75rem; }
+.card-invoice-categories .row b { color: var(--expense); }
 .card-invoice-paid-message { padding-top: 5px; color: var(--income); text-align: center; font-size: .875rem; font-weight: 700; }
 .card-invoice-count { color: var(--muted); font-size: .8125rem; }
 .card-invoice-purchase { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }

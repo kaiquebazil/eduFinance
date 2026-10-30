@@ -759,6 +759,13 @@ function cardInvoicePage() {
   const card = state.accounts.find(account => account.id === selectedCardId && isCredit(account));
   if (!card) return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button><span class="period">Fatura</span><span></span></div></header><div class="content"><div class="empty">Cartão não encontrado.</div></div>`;
   const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => a.date.localeCompare(b.date));
+  const categoryTotals = Object.values(purchases.reduce((totals, tx) => {
+    const category = tx.category || 'Compra';
+    if (!totals[category]) totals[category] = { category, amount: 0, count: 0 };
+    totals[category].amount += Number(tx.amount || 0);
+    totals[category].count += 1;
+    return totals;
+  }, {})).sort((a, b) => b.amount - a.amount);
   const total = creditInvoiceTotal(card, state.selectedMonth);
   const paid = invoicePaidTotal(card, state.selectedMonth);
   const remaining = invoiceRemaining(card, state.selectedMonth);
@@ -779,6 +786,10 @@ function cardInvoicePage() {
       <div class="row"><strong>Falta pagar</strong><strong class="card-invoice-remaining">${money(remaining)}</strong></div>
       ${remaining > 0 ? `<button class="save" data-pay-invoice="${escapeHtml(card.id)}" data-invoice-month="${state.selectedMonth}" data-invoice-amount="${remaining}">Pagar ${money(remaining)}</button>` : total > 0 ? '<div class="card-invoice-paid-message">✓ Fatura paga</div>' : ''}
     </div>
+    <h2 class="section-title">Total por categoria</h2>
+    ${categoryTotals.length ? `<div class="panel card-invoice-categories">${categoryTotals.map(item => `
+      <div class="row"><span>${escapeHtml(item.category)} <small>${item.count} ${item.count === 1 ? 'compra' : 'compras'}</small></span><b>${money(item.amount)}</b></div>
+    `).join('')}</div>` : '<div class="empty"><b>Sem gastos por categoria</b>Quando houver compras nesta fatura, os totais aparecerão aqui.</div>'}
     <h2 class="section-title">Compras nesta fatura <span class="card-invoice-count">${purchases.length}</span></h2>
     ${purchases.length ? `<div class="setting-list">${purchases.map(tx => {
       const installmentLabel = tx.installment ? `${tx.installment.current}/${tx.installment.total} parcelas` : 'Compra à vista';
