@@ -816,10 +816,16 @@ button { -webkit-appearance: none; appearance: none; }
 .budget-goals-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
 .budget-goals-heading .section-title { margin: 0; }
 .budget-goals-heading > span { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
-.budget-type-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 0 0 18px; padding: 5px; border-radius: 14px; background: var(--line-2); }
+.budget-type-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0 0 18px; padding: 5px; border-radius: 14px; background: var(--line-2); }
 .budget-type-switch button { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: 700 .875rem "DM Sans", sans-serif; cursor: pointer; }
 .budget-type-switch button.active { background: var(--card); color: var(--blue-700); box-shadow: var(--shadow-sm); }
 :root[data-mode="dark"] .budget-type-switch button.active { color: var(--blue-300); }
+.budget-comparison { display: grid; gap: 18px; }
+.budget-comparison .row { align-items: center; }
+.budget-comparison .income-value { color: var(--income); }
+.budget-comparison .expense-value { color: var(--expense); }
+.budget-comparison-balance { padding-top: 14px; border-top: 1px solid var(--line); }
+.budget-comparison-note { margin: 12px 2px; color: var(--muted); font-size: .8125rem; }
 .budget-add-goal { margin: 12px 0 8px; }
 .budget-add-goal:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 

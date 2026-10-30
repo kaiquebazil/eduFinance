@@ -348,6 +348,38 @@ function categoryDetail() {
 
 function budget() {
   const type = budgetType;
+  if (type === 'comparison') {
+    const transactions = inMonth();
+    const income = transactions.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const expenses = transactions.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    const balance = income - expenses;
+    const scale = Math.max(income, expenses, 1);
+    return `<header class="top">
+      <div class="topbar">${monthChanger()}</div>
+      <div class="balance-label">Comparativo de receitas e despesas</div>
+      <div class="balance" style="font-size:1.375rem;color:${balance >= 0 ? 'var(--income)' : 'var(--expense)'}">${balance >= 0 ? 'Sobrou ' : 'Faltou '}${money(Math.abs(balance))}</div>
+    </header>
+    <div class="content">
+      <div class="budget-type-switch" role="group" aria-label="Visão do orçamento">
+        <button type="button" data-budget-type="expense">Despesas</button>
+        <button type="button" data-budget-type="income">Receitas</button>
+        <button type="button" data-budget-type="comparison" class="active" aria-pressed="true">Comparativo</button>
+      </div>
+      <h2 class="section-title">${monthLabel(state.selectedMonth)}</h2>
+      <div class="panel budget-comparison">
+        <div class="budget-comparison-item">
+          <div class="row"><strong>Receitas</strong><b class="income-value">${money(income)}</b></div>
+          <div class="budget-progress income-goal"><i style="width:${income / scale * 100}%"></i></div>
+        </div>
+        <div class="budget-comparison-item">
+          <div class="row"><strong>Despesas</strong><b class="expense-value">${money(expenses)}</b></div>
+          <div class="budget-progress danger"><i style="width:${expenses / scale * 100}%"></i></div>
+        </div>
+        <div class="row budget-comparison-balance"><strong>Saldo do mês</strong><b style="color:${balance >= 0 ? 'var(--income)' : 'var(--expense)'}">${money(balance)}</b></div>
+      </div>
+      <p class="budget-comparison-note">Comparação dos lançamentos registrados em ${monthLabel(state.selectedMonth)}.</p>
+    </div>`;
+  }
   const isIncome = type === 'income';
   const budgetMap = categoryBudgetMap(type);
   const actualLabel = isIncome ? 'recebido' : 'utilizado';
@@ -379,6 +411,7 @@ function budget() {
     <div class="budget-type-switch" role="group" aria-label="Tipo de orçamento">
       <button type="button" data-budget-type="expense" class="${!isIncome ? 'active' : ''}" aria-pressed="${!isIncome}">Despesas</button>
       <button type="button" data-budget-type="income" class="${isIncome ? 'active' : ''}" aria-pressed="${isIncome}">Receitas</button>
+      <button type="button" data-budget-type="comparison">Comparativo</button>
     </div>
     <h2 class="section-title">${isIncome ? 'Sua meta de receitas' : 'Seu orçamento'}</h2>
     <div class="panel">
