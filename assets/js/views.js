@@ -791,7 +791,7 @@ function cardDetailPage() {
 function cardInvoicePage() {
   const card = state.accounts.find(account => account.id === selectedCardId && isCredit(account));
   if (!card) return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button><span class="period">Fatura</span><span></span></div></header><div class="content"><div class="empty">Cartão não encontrado.</div></div>`;
-  const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => a.date.localeCompare(b.date));
+  const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => b.date.localeCompare(a.date));
   const categoryTotals = Object.values(purchases.reduce((totals, tx) => {
     const category = tx.category || 'Compra';
     if (!totals[category]) totals[category] = { category, amount: 0, count: 0 };
@@ -989,7 +989,10 @@ function all() {
     <div class="topbar">
       <button class="icon-btn" data-go="home" aria-label="Voltar">‹</button>
       <span class="period">Todos os lançamentos</span>
-      <button class="icon-btn" id="searchBtn" aria-label="Buscar">🔍</button>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" id="searchBtn" aria-label="Buscar">🔍</button>
+        <button class="icon-btn" id="clearMonthData" aria-label="Apagar dados de ${monthLabel(state.selectedMonth)}" title="Apagar dados deste mês" style="color:var(--expense)">⌫</button>
+      </div>
     </div>
     <div class="balance-label">${monthLabel(state.selectedMonth)}</div>
     <div class="balance">Histórico</div>

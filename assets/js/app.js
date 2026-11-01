@@ -374,6 +374,32 @@ document.addEventListener('click', e => {
   if (e.target.closest('#exportData'))  { exportData();  return; }
   if (e.target.closest('#importData'))  { importData();  return; }
 
+  if (e.target.closest('#clearMonthData')) {
+    const month = state.selectedMonth;
+    const monthTransactions = state.transactions.filter(tx =>
+      tx.date?.startsWith(month) || tx.invoiceMonth === month
+    );
+    if (!monthTransactions.length) {
+      toast(`Não há lançamentos em ${monthLabel(month)} para apagar`);
+      return;
+    }
+    confirmationModal(
+      `Apagar dados de ${monthLabel(month)}?`,
+      `${monthTransactions.length} lançamento(s) serão removidos. Isso inclui compras e pagamentos atribuídos a esse mês; os demais meses e suas configurações serão mantidos.`,
+      () => {
+        state.transactions = state.transactions.filter(tx => !monthTransactions.some(item => item.id === tx.id));
+        persist(); render();
+        toast(`Dados de ${monthLabel(month)} apagados`, () => {
+          state.transactions.push(...monthTransactions);
+          persist(); render(); toast('Dados restaurados');
+        });
+      },
+      'APAGAR MÊS',
+      true
+    );
+    return;
+  }
+
   if (e.target.closest('#clearData')) {
     confirmationModal(
       'Apagar TODOS os dados?',
