@@ -284,6 +284,9 @@ function migrate(old) {
 
 /* ==== ESTADO GLOBAL ==== */
 let state = migrate(JSON.parse(localStorage.getItem(KEY) || 'null'));
+// O mês escolhido anteriormente é apenas preferência de navegação; ao abrir o app,
+// sempre comece na competência atual.
+state.selectedMonth = currentMonth();
 let page = state.pinLock?.enabled ? 'lock' : 'home';
 let statsFilter = 'month';
 let statsType = 'expense';
