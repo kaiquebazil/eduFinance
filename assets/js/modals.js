@@ -569,7 +569,17 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   const editing = Number.isInteger(editIndex);
   const existing = editing ? state.categories[type][editIndex] : null;
   let icon = existing?.icon || '🏷️';
-  const ICONS = ['🏷️','🍽️','🚕','🛒','🏠','🎉','🙏','⛽','🚗','🩺','💇','🍔','📱','🎮','🎓','💡','🅿️','💰','💸','👨‍👩‍👧','💼','📌','💵','🏦','🎤','👴','❤️','🎁','📚','🐾','🎯','✈️'];
+  const ICONS = [...new Set([
+    '🏷️','🍽️','🚕','🛒','🏠','🎉','🙏','⛽','🚗','🩺','💇','🍔','📱','🎮','🎓','💡','🅿️','💰','💸','👨‍👩‍👧','💼','📌','💵','🏦','🎤','👴','❤️','🎁','📚','🐾','🎯','✈️',
+    '💳','🧾','🪙','💎','📈','📉','💹','🧮','🏧','🪙','🧰','🔑','🛏️','🛋️','🚿','🧹','🧺','🪴','🪟','🧯',
+    '🥗','🍕','🍣','☕','🧋','🍰','🥐','🍎','🥦','🥩','🍷','🍺','🧃','🛍️','👗','👟','👜','💍','🧴','🧼',
+    '💊','🦷','👓','🏥','🧘','🏋️','🚴','⚽','🏀','🎾','🏊','🧗','🎨','🎬','🎧','🎼','🎹','📷','🎟️','🎲',
+    '🚌','🚇','🚆','🚲','🛵','🏍️','🚙','🚚','🚦','🛣️','🛫','🧳','🏖️','🏕️','🏨','🗺️','⛵','🚢','🚁','🚜',
+    '🔧','🛠️','🪛','🔨','🪚','🧱','🪜','🏗️','🧑‍🔧','🖥️','💻','⌨️','🖨️','🖱️','📺','📡','🔋','🔌','🌐','📦',
+    '🐶','🐱','🐰','🐦','🐠','🦴','🌱','🌳','🌷','🌻','🌧️','☀️','🔥','💧','♻️','🧸','👶','🧒','👨‍👩‍👧‍👦','🍼',
+    '💒','⛪','🕌','🕍','⚖️','🛡️','🔒','📅','⏰','✅','⭐','🌟','🏆','🥇','🪙','🧵','🪡','🧶','✂️','🖊️',
+    '📖','📝','📎','📐','🧪','🔬','🧑‍🏫','🧑‍🎓','🗣️','🤝','🫶','💌','💐','🎈','🪅','🎊','🧧','🎀','🪙','🧹'
+  ])];
   const customSuggestions = (existing?.suggestions || []).map(name => [name, '🏷️']);
 
   const $c = sel => root.querySelector(sel);
@@ -673,6 +683,8 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
     if (editing) {
       const category = state.categories[type][editIndex];
       const previousName = category.name;
+      if (previousName !== name) markCategoryRemoved(type, previousName);
+      markCategoryRestored(type, name);
       category.name = name;
       category.icon = icon || '🏷️';
       category.suggestions = customSuggestions.map(([text]) => text);
@@ -690,6 +702,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
       });
       renameCategoryBudgets(type, previousName, name);
     } else {
+      markCategoryRestored(type, name);
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false, suggestions: customSuggestions.map(([text]) => text) });
     }
     state.categories[type].sort((a, b) =>

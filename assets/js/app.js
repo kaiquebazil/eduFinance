@@ -341,6 +341,7 @@ document.addEventListener('click', e => {
       () => {
         state.categories[remove.dataset.removeCategory] =
           state.categories[remove.dataset.removeCategory].filter(c => c.name !== remove.dataset.categoryName);
+        markCategoryRemoved(remove.dataset.removeCategory, remove.dataset.categoryName);
         removeCategoryBudgets(remove.dataset.removeCategory, remove.dataset.categoryName);
         persist(); render(); toast('Categoria removida');
       },
