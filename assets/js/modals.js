@@ -357,12 +357,18 @@ function editTransactionModal(txId) {
     e.preventDefault();
     const f      = new FormData(e.target);
     const amount = parseMoney(f.get('amount'));
+    const date   = f.get('date');
     if (!amount) return toast('Informe um valor válido.');
+    const nextAccountId = f.get('accountId');
+    const nextAccount = state.accounts.find(a => a.id === nextAccountId);
     Object.assign(tx, {
       type, amount,
       category: selected.name, icon: selected.icon,
-      accountId: f.get('accountId'),
-      note: f.get('note'), date: f.get('date')
+      accountId: nextAccountId,
+      note: f.get('note'), date,
+      ...(isCredit(nextAccount) && (tx.installment || tx.invoiceMonth)
+        ? { invoiceMonth: monthOf(date) }
+        : {})
     });
     persist();
     if (navigator.vibrate) navigator.vibrate(8);
@@ -569,17 +575,7 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
   const editing = Number.isInteger(editIndex);
   const existing = editing ? state.categories[type][editIndex] : null;
   let icon = existing?.icon || '🏷️';
-  const ICONS = [...new Set([
-    '🏷️','🍽️','🚕','🛒','🏠','🎉','🙏','⛽','🚗','🩺','💇','🍔','📱','🎮','🎓','💡','🅿️','💰','💸','👨‍👩‍👧','💼','📌','💵','🏦','🎤','👴','❤️','🎁','📚','🐾','🎯','✈️',
-    '💳','🧾','🪙','💎','📈','📉','💹','🧮','🏧','🪙','🧰','🔑','🛏️','🛋️','🚿','🧹','🧺','🪴','🪟','🧯',
-    '🥗','🍕','🍣','☕','🧋','🍰','🥐','🍎','🥦','🥩','🍷','🍺','🧃','🛍️','👗','👟','👜','💍','🧴','🧼',
-    '💊','🦷','👓','🏥','🧘','🏋️','🚴','⚽','🏀','🎾','🏊','🧗','🎨','🎬','🎧','🎼','🎹','📷','🎟️','🎲',
-    '🚌','🚇','🚆','🚲','🛵','🏍️','🚙','🚚','🚦','🛣️','🛫','🧳','🏖️','🏕️','🏨','🗺️','⛵','🚢','🚁','🚜',
-    '🔧','🛠️','🪛','🔨','🪚','🧱','🪜','🏗️','🧑‍🔧','🖥️','💻','⌨️','🖨️','🖱️','📺','📡','🔋','🔌','🌐','📦',
-    '🐶','🐱','🐰','🐦','🐠','🦴','🌱','🌳','🌷','🌻','🌧️','☀️','🔥','💧','♻️','🧸','👶','🧒','👨‍👩‍👧‍👦','🍼',
-    '💒','⛪','🕌','🕍','⚖️','🛡️','🔒','📅','⏰','✅','⭐','🌟','🏆','🥇','🪙','🧵','🪡','🧶','✂️','🖊️',
-    '📖','📝','📎','📐','🧪','🔬','🧑‍🏫','🧑‍🎓','🗣️','🤝','🫶','💌','💐','🎈','🪅','🎊','🧧','🎀','🪙','🧹'
-  ])];
+  const ICONS = ['🏷️','🍽️','🚕','🛒','🏠','🎉','🙏','⛽','🚗','🩺','💇','🍔','📱','🎮','🎓','💡','🅿️','💰','💸','👨‍👩‍👧','💼','📌','💵','🏦','🎤','👴','❤️','🎁','📚','🐾','🎯','✈️'];
   const customSuggestions = (existing?.suggestions || []).map(name => [name, '🏷️']);
 
   const $c = sel => root.querySelector(sel);
@@ -683,8 +679,6 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
     if (editing) {
       const category = state.categories[type][editIndex];
       const previousName = category.name;
-      if (previousName !== name) markCategoryRemoved(type, previousName);
-      markCategoryRestored(type, name);
       category.name = name;
       category.icon = icon || '🏷️';
       category.suggestions = customSuggestions.map(([text]) => text);
@@ -702,7 +696,6 @@ function categoryModal(initialType = 'expense', editIndex = null, onCreated = nu
       });
       renameCategoryBudgets(type, previousName, name);
     } else {
-      markCategoryRestored(type, name);
       state.categories[type].push({ name, icon: icon || '🏷️', hidden: false, suggestions: customSuggestions.map(([text]) => text) });
     }
     state.categories[type].sort((a, b) =>

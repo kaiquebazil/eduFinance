@@ -114,7 +114,7 @@ Object.values(categories).forEach(list => list.sort((a, b) =>
 
 /* ==== ESTADO INICIAL (seed) ==== */
 const seed = {
-  version: 9,
+  version: 8,
   theme: 'default',
   colorMode: 'light',
   fontScale: 1,
@@ -127,7 +127,6 @@ const seed = {
   budget: 0,
   categoryBudgetsByMonth: {},
   incomeCategoryBudgetsByMonth: {},
-  removedCategories: { expense: [], income: [] },
   categories,
   accounts: [
     { id: 'bank', name: 'Conta principal', icon: '🏦', initialBalance: 0, kind: 'bank' }
@@ -173,10 +172,6 @@ function sanitizeState(s) {
   );
   s.categoryBudgetsByMonth = monthlyBudgets(s.categoryBudgetsByMonth);
   s.incomeCategoryBudgetsByMonth = monthlyBudgets(s.incomeCategoryBudgetsByMonth);
-  s.removedCategories = Object.fromEntries(['expense', 'income'].map(type => [type,
-    [...new Set((Array.isArray(s.removedCategories?.[type]) ? s.removedCategories[type] : [])
-      .map(name => String(name || '').trim()).filter(Boolean))]
-  ]));
   delete s.categoryBudgets;
   delete s.incomeCategoryBudgets;
   s.categories = {
@@ -238,18 +233,17 @@ function migrate(old) {
     if (Number(savedBudgets[name]) === amount) delete savedBudgets[name];
   });
   const savedCategories = old.categories || {};
-  const removedCategories = Object.fromEntries(['expense', 'income'].map(type => [type,
-    new Set((Array.isArray(old.removedCategories?.[type]) ? old.removedCategories[type] : [])
-      .map(name => String(name || '').trim().toLocaleLowerCase('pt-BR')))
-  ]));
   const foodSubcategories = new Set(['açougue', 'mercado', 'padaria', 'sacolão']);
   const mergedCategories = Object.fromEntries(['expense', 'income'].map(type => {
-    const saved = (Array.isArray(savedCategories[type]) ? savedCategories[type] : [])
+    const hasSavedList = Array.isArray(savedCategories[type]);
+    const saved = (hasSavedList ? savedCategories[type] : [])
       .filter(category => !(type === 'expense' && foodSubcategories.has(String(category?.name || '').trim().toLocaleLowerCase('pt-BR'))));
     const names = new Set(saved.map(c => String(c?.name || '').trim().toLocaleLowerCase()));
     return [type, [
       ...saved,
-      ...categories[type].filter(c => !names.has(c.name.toLocaleLowerCase()) && !removedCategories[type].has(c.name.toLocaleLowerCase('pt-BR')))
+      // Uma lista salva representa as categorias ativas escolhidas pelo usuário.
+      // Completar com padrões aqui faz categorias removidas reaparecerem a cada abertura.
+      ...(hasSavedList ? [] : categories[type].filter(c => !names.has(c.name.toLocaleLowerCase())))
     ]];
   }));
   Object.values(mergedCategories).forEach(list => list.sort((a, b) =>
@@ -260,14 +254,13 @@ function migrate(old) {
   const base = {
     ...seed,
     ...old,
-    version: 9,
+    version: 8,
     selectedMonth,
     budget: 0,
     categoryBudgetsByMonth: old.categoryBudgetsByMonth || (Object.keys(savedBudgets).length ? { [selectedMonth]: savedBudgets } : {}),
     incomeCategoryBudgetsByMonth: old.incomeCategoryBudgetsByMonth || (Object.keys(legacyIncomeBudgets).length ? { [selectedMonth]: legacyIncomeBudgets } : {}),
     accounts: old.accounts && old.accounts.length ? old.accounts : seed.accounts,
     categories: mergedCategories,
-    removedCategories: old.removedCategories || { expense: [], income: [] },
     recurring: Array.isArray(old.recurring) ? old.recurring : []
   };
   const sampleTransactionIds = new Set(['income-seed', 'market-seed', 'ride-seed']);
@@ -294,9 +287,6 @@ function migrate(old) {
 
 /* ==== ESTADO GLOBAL ==== */
 let state = migrate(JSON.parse(localStorage.getItem(KEY) || 'null'));
-// O mês escolhido anteriormente é apenas preferência de navegação; ao abrir o app,
-// sempre comece na competência atual.
-state.selectedMonth = currentMonth();
 let page = state.pinLock?.enabled ? 'lock' : 'home';
 let statsFilter = 'month';
 let statsType = 'expense';
@@ -325,17 +315,6 @@ function renameCategoryBudgets(type, previousName, nextName) {
 function removeCategoryBudgets(type, name) {
   const key = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
   Object.values(state[key]).forEach(monthMap => delete monthMap[name]);
-}
-
-function markCategoryRemoved(type, name) {
-  state.removedCategories ||= { expense: [], income: [] };
-  state.removedCategories[type] ||= [];
-  if (!state.removedCategories[type].includes(name)) state.removedCategories[type].push(name);
-}
-
-function markCategoryRestored(type, name) {
-  state.removedCategories ||= { expense: [], income: [] };
-  state.removedCategories[type] = (state.removedCategories[type] || []).filter(removed => removed !== name);
 }
 
 function persist() {

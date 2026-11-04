@@ -388,19 +388,18 @@ function budget() {
   inMonth().filter(x => x.type === type).forEach(x => {
     byCategory[x.category] = (byCategory[x.category] || 0) + Number(x.amount);
   });
-  const monthlyBudget = Object.entries(budgetMap)
-    .reduce((sum, [, amount]) => sum + Number(amount || 0), 0);
-  const categoryRows = categories
-    .map(category => {
-      const amount = Number(budgetMap[category.name] || 0);
-      const spent = byCategory[category.name] || 0;
-      const progress = amount > 0 ? spent / amount * 100 : null;
-      return { category, amount, spent, progress };
+  const goals = Object.entries(budgetMap)
+    .map(([name, amount]) => {
+      const category = categories.find(c => c.name === name);
+      const spent = byCategory[name] || 0;
+      const progress = amount > 0 ? spent / amount * 100 : 0;
+      return category && amount >= 0 ? { category, amount, spent, progress } : null;
     })
-    .filter(row => row.amount > 0 || row.spent > 0)
-    .sort((a, b) => (b.progress ?? -1) - (a.progress ?? -1) || b.spent - a.spent);
+    .filter(Boolean)
+    .sort((a, b) => b.progress - a.progress);
+  const monthlyBudget = goals.reduce((sum, goal) => sum + goal.amount, 0);
   const actual = Object.values(byCategory).reduce((sum, amount) => sum + amount, 0);
-  const actualUsed = monthlyBudget ? actual / monthlyBudget * 100 : null;
+  const actualUsed = monthlyBudget ? actual / monthlyBudget * 100 : 0;
   const used = Math.min(actualUsed, 100);
 
   return `<header class="top">
@@ -418,25 +417,25 @@ function budget() {
     <div class="panel">
       <div class="row">
         <strong>${isIncome ? 'Receitas' : 'Despesas'} de ${monthLabel(state.selectedMonth)}</strong>
-        <span>${actualUsed === null ? '—' : `${Math.round(actualUsed)}%`}</span>
+        <span>${Math.round(actualUsed)}%</span>
       </div>
-      <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(actualUsed || 0)}"><i style="width:${used || 0}%"></i></div>
+      <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(actualUsed)}"><i style="width:${used}%"></i></div>
       <div class="row" style="font-size: 0.8125rem;color:var(--muted)">
         <span>${money(actual)} ${actualLabel}</span>
-        <span>${monthlyBudget ? `${money(Math.max(monthlyBudget - actual, 0))} ${isIncome ? 'para atingir a meta' : 'restante'}` : 'Defina metas por categoria'}</span>
+        <span>${money(Math.max(monthlyBudget - actual, 0))} ${isIncome ? 'para atingir a meta' : 'restante'}</span>
       </div>
     </div>
     <button class="save" id="addCategoryBudget" data-budget-type="${type}" style="margin-top:12px">Adicionar meta de ${isIncome ? 'receita' : 'despesa'} por categoria</button>
 
-    <div class="budget-goals-heading"><h2 class="section-title">Metas de ${isIncome ? 'receita' : 'despesa'} por categoria</h2><span>${categoryRows.filter(row => row.amount > 0).length} ${categoryRows.filter(row => row.amount > 0).length === 1 ? 'meta' : 'metas'}</span></div>
-    ${categoryRows.length ? `<div class="setting-list">
-      ${categoryRows.map(({ category, amount, spent, progress }) => `
+    <div class="budget-goals-heading"><h2 class="section-title">Metas de ${isIncome ? 'receita' : 'despesa'} por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
+    ${goals.length ? `<div class="setting-list">
+      ${goals.map(({ category, amount, spent, progress }) => `
         <div class="setting category-row" data-cat-budget="${escapeHtml(category.name)}" data-budget-type="${type}">
           <span class="s-icon">${escapeHtml(category.icon)}</span>
           <span style="flex:1">
             <strong>${escapeHtml(category.name)}</strong>
-            <small>${amount ? `${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%` : `${money(spent)} ${actualLabel} · ${isIncome ? 'Sem meta definida' : 'Sem limite definido'}`}</small>
-            ${amount ? `<div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>` : `<small class="budget-category-action">Toque para ${isIncome ? 'definir meta' : 'adicionar limite'}</small>`}
+            <small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
+            <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>
           </span>
           <b class="chev">›</b>
         </div>`).join('')}
@@ -792,7 +791,7 @@ function cardDetailPage() {
 function cardInvoicePage() {
   const card = state.accounts.find(account => account.id === selectedCardId && isCredit(account));
   if (!card) return `<header class="top"><div class="topbar"><button class="icon-btn" data-go="accounts" aria-label="Voltar">‹</button><span class="period">Fatura</span><span></span></div></header><div class="content"><div class="empty">Cartão não encontrado.</div></div>`;
-  const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => b.date.localeCompare(a.date));
+  const purchases = creditInvoice(card, state.selectedMonth).sort((a, b) => a.date.localeCompare(b.date));
   const categoryTotals = Object.values(purchases.reduce((totals, tx) => {
     const category = tx.category || 'Compra';
     if (!totals[category]) totals[category] = { category, amount: 0, count: 0 };
@@ -990,10 +989,7 @@ function all() {
     <div class="topbar">
       <button class="icon-btn" data-go="home" aria-label="Voltar">‹</button>
       <span class="period">Todos os lançamentos</span>
-      <div style="display:flex;gap:6px">
-        <button class="icon-btn" id="searchBtn" aria-label="Buscar">🔍</button>
-        <button class="icon-btn" id="clearMonthData" aria-label="Apagar dados de ${monthLabel(state.selectedMonth)}" title="Apagar dados deste mês" style="color:var(--expense)">⌫</button>
-      </div>
+      <button class="icon-btn" id="searchBtn" aria-label="Buscar">🔍</button>
     </div>
     <div class="balance-label">${monthLabel(state.selectedMonth)}</div>
     <div class="balance">Histórico</div>
