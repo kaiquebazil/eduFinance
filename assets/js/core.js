@@ -408,6 +408,41 @@ function invoiceRemaining(account, month) {
   return Math.max(Math.round((total - paid) * 100) / 100, 0);
 }
 
+// Returns expense amounts when they are paid, grouped by the original purchase category.
+function paidExpensesForReports() {
+  const expenses = state.transactions.filter(tx =>
+    tx.type === 'expense' && !isCredit(state.accounts.find(account => account.id === tx.accountId))
+  );
+
+  state.transactions
+    .filter(tx => tx.type === 'invoice_payment' && tx.cardId && tx.invoiceMonth && Number(tx.amount) > 0)
+    .forEach(payment => {
+      const card = state.accounts.find(account => account.id === payment.cardId);
+      if (!card) return;
+      const purchases = creditInvoice(card, payment.invoiceMonth);
+      const invoiceCents = purchases.reduce((sum, tx) => sum + Math.round(Number(tx.amount || 0) * 100), 0);
+      if (!invoiceCents) return;
+
+      const paidCents = Math.min(Math.round(Number(payment.amount) * 100), invoiceCents);
+      let allocatedCents = 0;
+      purchases.forEach((purchase, index) => {
+        const purchaseCents = Math.round(Number(purchase.amount || 0) * 100);
+        const shareCents = index === purchases.length - 1
+          ? paidCents - allocatedCents
+          : Math.floor(paidCents * purchaseCents / invoiceCents);
+        allocatedCents += shareCents;
+        if (shareCents > 0) expenses.push({
+          ...purchase,
+          id: `${payment.id}:${purchase.id}`,
+          date: payment.date,
+          amount: shareCents / 100
+        });
+      });
+    });
+
+  return expenses;
+}
+
 function invoiceMonthFor(account, date) {
   const m   = monthOf(date);
   const day = Number(date.slice(8, 10));

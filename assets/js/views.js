@@ -190,6 +190,17 @@ function stats() {
 
   const type = statsType === 'income' ? 'income' : 'expense';
   const typeLabel = type === 'income' ? 'Receitas' : 'Despesas';
+
+  if (type === 'expense') {
+    const isInRange = date => {
+      if (statsFilter === 'day') return date === today();
+      if (statsFilter === 'week') return date >= startOfWeek() && date <= today();
+      if (statsFilter === 'month') return date?.startsWith(state.selectedMonth);
+      if (statsFilter === 'year') return date?.startsWith(state.selectedMonth.slice(0, 4));
+      return true;
+    };
+    list = paidExpensesForReports().filter(tx => isInRange(tx.date));
+  }
   const byCategory = {};
   list.filter(x => x.type === type).forEach(x => {
     if (!byCategory[x.category]) byCategory[x.category] = { icon: x.icon, total: 0, count: 0 };
@@ -259,7 +270,8 @@ function stats() {
 function categoryDetail() {
   const type = selectedCategoryType === 'income' ? 'income' : 'expense';
   const category = state.categories[type].find(c => c.name === selectedCategoryName);
-  let entries = state.transactions.filter(t => t.category === selectedCategoryName && t.type === type);
+  const reportSource = type === 'expense' ? paidExpensesForReports() : state.transactions;
+  let entries = reportSource.filter(t => t.category === selectedCategoryName && t.type === type);
   if (statsFilter === 'day') entries = entries.filter(t => t.date === today());
   else if (statsFilter === 'week') entries = entries.filter(t => t.date >= startOfWeek() && t.date <= today());
   else if (statsFilter === 'month') entries = entries.filter(t => t.date?.startsWith(state.selectedMonth));
