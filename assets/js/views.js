@@ -593,7 +593,7 @@ function privacyPage() {
 
 function lockScreen() {
   return `<section class="app-lock-screen">
-    <img src="./icon.svg" alt="" width="72" height="72">
+    <img src="./assets/icons/icon.svg" alt="" width="72" height="72">
     <h1>EduFinance bloqueado</h1>
     <p>Digite seu PIN para continuar.</p>
     <form id="unlockForm">
