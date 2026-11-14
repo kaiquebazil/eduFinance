@@ -405,10 +405,15 @@ function budget() {
       const category = categories.find(c => c.name === name);
       const spent = byCategory[name] || 0;
       const progress = amount > 0 ? spent / amount * 100 : 0;
-      return category && amount >= 0 ? { category, amount, spent, progress } : null;
+      return category && amount >= 0 ? { category, amount, spent, progress, hasLimit: true } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.progress - a.progress);
+  const unbudgeted = categories
+    .filter(category => byCategory[category.name] > 0 && !Object.prototype.hasOwnProperty.call(budgetMap, category.name))
+    .map(category => ({ category, amount: 0, spent: byCategory[category.name], progress: 0, hasLimit: false }))
+    .sort((a, b) => b.spent - a.spent);
+  const budgetRows = [...goals, ...unbudgeted];
   const monthlyBudget = goals.reduce((sum, goal) => sum + goal.amount, 0);
   const actual = Object.values(byCategory).reduce((sum, amount) => sum + amount, 0);
   const actualUsed = monthlyBudget ? actual / monthlyBudget * 100 : 0;
@@ -440,14 +445,16 @@ function budget() {
     <button class="save" id="addCategoryBudget" data-budget-type="${type}" style="margin-top:12px">Adicionar meta de ${isIncome ? 'receita' : 'despesa'} por categoria</button>
 
     <div class="budget-goals-heading"><h2 class="section-title">Metas de ${isIncome ? 'receita' : 'despesa'} por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
-    ${goals.length ? `<div class="setting-list">
-      ${goals.map(({ category, amount, spent, progress }) => `
+    ${budgetRows.length ? `<div class="setting-list">
+      ${budgetRows.map(({ category, amount, spent, progress, hasLimit }) => `
         <div class="setting category-row" data-cat-budget="${escapeHtml(category.name)}" data-budget-type="${type}">
           <span class="s-icon">${escapeHtml(category.icon)}</span>
           <span style="flex:1">
             <strong>${escapeHtml(category.name)}</strong>
-            <small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
-            <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>
+            ${hasLimit
+              ? `<small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
+                <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>`
+              : `<small>${money(spent)} ${actualLabel} · Sem limite definido</small><small class="budget-no-limit-hint">Toque para adicionar limite ou mover lançamentos</small>`}
           </span>
           <b class="chev">›</b>
         </div>`).join('')}

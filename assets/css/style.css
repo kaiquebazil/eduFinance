@@ -816,6 +816,7 @@ button { -webkit-appearance: none; appearance: none; }
 .budget-goals-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
 .budget-goals-heading .section-title { margin: 0; }
 .budget-goals-heading > span { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
+.budget-no-limit-hint { display: block; margin-top: 4px; color: var(--blue-600); font-size: 0.75rem; }
 .budget-type-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0 0 18px; padding: 5px; border-radius: 14px; background: var(--line-2); }
 .budget-type-switch button { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: 700 .875rem "DM Sans", sans-serif; cursor: pointer; }
 .budget-type-switch button.active { background: var(--card); color: var(--blue-700); box-shadow: var(--shadow-sm); }
@@ -2193,6 +2194,20 @@ body[data-app-page="launch"] .add-button { display:none; }
 .category-detail-entry-info small { margin-top: 4px; color: var(--muted-2); font-size: 0.625rem; white-space: nowrap; }
 .category-detail-entry .amount { font-size: 0.75rem; font-weight: 600; }
 .category-detail-entry:focus-visible { outline-offset: -2px; }
+
+.budget-spending-summary { display: grid; gap: 9px; margin: 8px 0 14px; padding: 13px; border-radius: 14px; background: var(--line-2); }
+.budget-spending-summary .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 0.8125rem; }
+.budget-spending-summary .row:first-child strong { color: var(--ink); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.budget-spending-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0 8px; }
+.budget-spending-list-heading h3 { margin: 0; color: var(--ink); font: 600 0.875rem "DM Sans", sans-serif; }
+.budget-spending-list-heading > span { color: var(--muted); font-size: 0.6875rem; font-weight: 700; }
+.budget-spending-list { max-height: 34dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.budget-spending-entry { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 64px; padding: 8px 0; border-bottom: 1px solid var(--line-2); }
+.budget-spending-entry-info { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.budget-spending-entry-info strong { overflow: hidden; color: var(--ink); font-size: 0.8125rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.budget-spending-entry-info small { color: var(--muted-2); font-size: 0.6875rem; }
+.budget-spending-entry .amount { font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.budget-move-category { width: 100%; margin: 4px 0 10px; padding: 12px; }
 
 .theme-content { padding-top: 18px; }
 .theme-mode-section h2,

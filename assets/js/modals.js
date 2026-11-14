@@ -819,11 +819,94 @@ function accountModal(existingId = null) {
   };
 }
 
+function moveBudgetCategoryModal(sourceName, type = 'expense') {
+  const categories = state.categories[type] || [];
+  const budgetKey = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
+  const monthBudgets = state[budgetKey]?.[state.selectedMonth] || {};
+  const targets = categories.filter(category => category.name !== sourceName).sort((a, b) =>
+    Number(Object.prototype.hasOwnProperty.call(monthBudgets, b.name)) -
+    Number(Object.prototype.hasOwnProperty.call(monthBudgets, a.name)) ||
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+  );
+  if (!targets.length) return toast('Adicione outra categoria para poder mover estes lançamentos.');
+
+  const transactions = state.transactions.filter(tx => tx.type === type && tx.category === sourceName);
+  const recurring = (state.recurring || []).filter(item => item.type === type && item.category === sourceName);
+  const total = transactions.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-backdrop">
+      <form class="modal dialog-modal" id="moveBudgetCategoryForm">
+        <div class="handle"></div>
+        <h2 class="modal-title">Mover lançamentos</h2>
+        <p class="dialog-copy">Escolha a categoria que receberá os lançamentos de ${escapeHtml(sourceName)}. Serão movidos ${transactions.length} lançamentos (${money(total)}) e ${recurring.length} recorrências. Metas mensais existentes também serão somadas à categoria de destino.</p>
+        <label class="field"><span>Mover para</span>
+          <select name="targetCategory" required>${targets.map(category => `<option value="${escapeHtml(category.name)}">${escapeHtml(category.icon)} ${escapeHtml(category.name)}${Object.prototype.hasOwnProperty.call(monthBudgets, category.name) ? ' · Meta definida' : ''}</option>`).join('')}</select>
+        </label>
+        <div class="dialog-actions">
+          <button type="button" class="modal-secondary" id="cancelMoveBudgetCategory">Cancelar</button>
+          <button class="save">Mover tudo</button>
+        </div>
+      </form>
+    </div>`;
+  root.querySelector('#cancelMoveBudgetCategory').addEventListener('click', closeModal);
+  root.querySelector('.modal-backdrop').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  root.querySelector('#moveBudgetCategoryForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const target = categories.find(category => category.name === new FormData(e.currentTarget).get('targetCategory'));
+    if (!target) return;
+    confirmationModal(
+      'Confirmar mudança de categoria?',
+      `Mover todos os lançamentos de ${sourceName} para ${target.name}? Essa mudança também será aplicada às recorrências.`,
+      () => {
+        let moved = 0;
+        state.transactions.forEach(tx => {
+          if (tx.type !== type || tx.category !== sourceName) return;
+          tx.category = target.name;
+          tx.icon = target.icon;
+          moved++;
+        });
+        state.recurring.forEach(item => {
+          if (item.type !== type || item.category !== sourceName) return;
+          item.category = target.name;
+          item.icon = target.icon;
+        });
+        Object.values(state[budgetKey] || {}).forEach(monthMap => {
+          if (!Object.prototype.hasOwnProperty.call(monthMap, sourceName)) return;
+          monthMap[target.name] = Number(monthMap[target.name] || 0) + Number(monthMap[sourceName] || 0);
+          delete monthMap[sourceName];
+        });
+        persist(); render(); toast(`${moved} lançamentos movidos para ${target.name}`);
+      },
+      'Mover tudo'
+    );
+  });
+}
+
 function categoryBudgetModal(catName = '', type = 'expense') {
   const budgetMap = categoryBudgetMap(type, state.selectedMonth, true);
   if (!catName) {
-    const available = selectableCategories(type).filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
-    if (!available.length) return toast('Não há outras categorias disponíveis para criar uma meta.');
+    const budgetCategories = state.categories[type] || [];
+    const validNames = new Set(budgetCategories.map(category => category.name));
+    let removedOrphanBudgets = false;
+    Object.keys(budgetMap).forEach(name => {
+      if (!validNames.has(name)) {
+        delete budgetMap[name];
+        removedOrphanBudgets = true;
+      }
+    });
+    if (removedOrphanBudgets) persist();
+
+    const available = budgetCategories.filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
+    if (!available.length) {
+      if (!budgetCategories.length) {
+        categoryModal(type, null, () => categoryBudgetModal('', type));
+        return;
+      }
+      return toast('Todas as categorias cadastradas já têm uma meta. Toque em uma meta para editá-la.');
+    }
 
     const root = document.getElementById('modalRoot');
     root.innerHTML = `<div class="modal-backdrop">
@@ -932,7 +1015,7 @@ function categoryBudgetModal(catName = '', type = 'expense') {
       if (!String(form.get('amount') || '').trim()) return toast('Informe um limite mensal.');
       budgetMap[name] = amount;
       persist(); render(); toast('Meta definida');
-      const remaining = selectableCategories(type).filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
+      const remaining = budgetCategories.filter(c => !Object.prototype.hasOwnProperty.call(budgetMap, c.name));
       const select = root.querySelector('[name=category]');
       if (remaining.length) {
         select.innerHTML = remaining.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.icon)} ${escapeHtml(c.name)}</option>`).join('');
@@ -952,19 +1035,65 @@ function categoryBudgetModal(catName = '', type = 'expense') {
   }
 
   const current = budgetMap[catName] || 0;
-  inputModal({
-    title:       `Meta para ${catName}`,
-    label:       `Valor mensal (R$) — deixe 0 para remover`,
-    placeholder: 'R$ 0,00',
-    value:       current ? money(current) : '',
-    money:       true,
-    action: value => {
-      const amount = parseMoney(value) || 0;
-      if (amount > 0) budgetMap[catName] = amount;
-      else            delete budgetMap[catName];
-      persist(); render(); toast(amount ? 'Meta definida' : 'Meta removida');
-    }
+  const income = type === 'income';
+  const category = state.categories[type]?.find(item => item.name === catName);
+  const entries = inMonth()
+    .filter(tx => tx.type === type && tx.category === catName)
+    .sort((a, b) => b.date.localeCompare(a.date) || Number(b.amount) - Number(a.amount));
+  const spent = entries.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+  const movableCount = state.transactions.filter(tx => tx.type === type && tx.category === catName).length;
+  const recurringCount = (state.recurring || []).filter(item => item.type === type && item.category === catName).length;
+  const editBudget = value => {
+    const amount = parseMoney(value) || 0;
+    if (amount > 0) budgetMap[catName] = amount;
+    else            delete budgetMap[catName];
+    persist(); render(); toast(amount ? 'Meta definida' : 'Meta removida');
+  };
+
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-backdrop">
+      <section class="modal dialog-modal budget-spending-modal" role="dialog" aria-modal="true" aria-labelledby="budgetSpendingTitle">
+        <div class="handle"></div>
+        <h2 class="modal-title" id="budgetSpendingTitle">${escapeHtml(category?.icon || '🏷️')} ${escapeHtml(catName)}</h2>
+        <p class="dialog-copy">${monthLabel(state.selectedMonth)}</p>
+        <div class="budget-spending-summary">
+          <div class="row"><span>${income ? 'Recebido na categoria' : 'Gasto na categoria'}</span><strong>${money(spent)}</strong></div>
+          <div class="row"><span>${income ? 'Meta mensal' : 'Limite mensal'}</span><b>${current > 0 ? money(current) : 'Sem limite definido'}</b></div>
+          ${current > 0 ? `<div class="row"><span>${income ? (spent >= current ? 'Meta atingida' : 'Falta para atingir') : spent > current ? 'Acima do limite' : 'Restante'}</span><b>${money(Math.abs(current - spent))}</b></div>` : ''}
+        </div>
+        <div class="budget-spending-list-heading"><h3>${income ? 'Receitas' : 'Despesas'} no orçamento</h3><span>${entries.length} ${entries.length === 1 ? 'lançamento' : 'lançamentos'}</span></div>
+        <div class="budget-spending-list">
+          ${entries.length ? entries.map(tx => `
+            <article class="budget-spending-entry">
+              <span class="category-detail-entry-icon">${escapeHtml(tx.icon || category?.icon || '🏷️')}</span>
+              <span class="budget-spending-entry-info"><strong>${escapeHtml(tx.note || catName)}</strong><small>${dateFull(tx.date)} · ${escapeHtml(accountName(tx.accountId))}</small></span>
+              <b class="amount ${type}">${money(tx.amount)}</b>
+            </article>`).join('') : `<div class="empty"><b>Nenhum lançamento neste mês</b>Quando houver ${income ? 'receitas' : 'despesas'} nessa categoria, elas aparecerão aqui.</div>`}
+        </div>
+        ${movableCount || recurringCount || current > 0 ? '<button type="button" class="modal-secondary budget-move-category" id="moveBudgetCategory">Mover lançamentos para outra categoria</button>' : ''}
+        <div class="dialog-actions">
+          <button type="button" class="modal-secondary" id="closeBudgetSpending">Fechar</button>
+          <button type="button" class="save" id="editBudgetAmount">${current > 0 ? 'Editar meta' : 'Adicionar meta'}</button>
+        </div>
+      </section>
+    </div>`;
+  root.querySelector('#closeBudgetSpending').addEventListener('click', closeModal);
+  root.querySelector('.modal-backdrop').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
   });
+  root.querySelector('#editBudgetAmount').addEventListener('click', () => {
+    closeModal();
+    inputModal({
+      title:       `Meta para ${catName}`,
+      label:       'Valor mensal (R$) — deixe 0 para remover',
+      placeholder: 'R$ 0,00',
+      value:       current ? money(current) : '',
+      money:       true,
+      action: editBudget
+    });
+  });
+  root.querySelector('#moveBudgetCategory')?.addEventListener('click', () => moveBudgetCategoryModal(catName, type));
 }
 
 /* ==== AÇÕES ==== */
