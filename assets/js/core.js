@@ -5,6 +5,7 @@
 const KEY = 'meu-controle-v1';
 const themeOptions = [
   { id: 'default', label: 'Padrão' },
+  { id: 'yellow', label: 'Amarelo' },
   { id: 'orange', label: 'Laranja' },
   { id: 'blue', label: 'Ciano' },
   { id: 'green', label: 'Verde' },
@@ -116,6 +117,7 @@ Object.values(categories).forEach(list => list.sort((a, b) =>
 const seed = {
   version: 8,
   theme: 'default',
+  businessTheme: 'yellow',
   colorMode: 'light',
   fontScale: 1,
   hideAmounts: false,
@@ -134,6 +136,16 @@ const seed = {
   transactions: [],
   recurring: []
 };
+const businessCategories = {
+  expense: ['Aluguel comercial','Água e energia','Contabilidade','Equipamentos','Folha de pagamento','Impostos e taxas','Marketing e publicidade','Material de escritório','Manutenção','Serviços contratados','Tarifas bancárias','Transporte e entregas','Fornecedores','Outras despesas'].map(name => ({ name, icon: '🏢' })),
+  income: ['Vendas de produtos','Serviços prestados','Contratos','Comissões','Outras receitas'].map(name => ({ name, icon: '💼' }))
+};
+const workspaceFields = ['transactions','accounts','categories','recurring','budget','categoryBudgetsByMonth','incomeCategoryBudgetsByMonth'];
+const freshBusinessWorkspace = () => ({
+  transactions: [], accounts: [{ id: 'business-bank', name: 'Conta empresarial', icon: '🏢', initialBalance: 0, kind: 'bank' }],
+  categories: structuredClone(businessCategories), recurring: [], budget: 0,
+  categoryBudgetsByMonth: {}, incomeCategoryBudgetsByMonth: {}
+});
 
 /* ==== SANITIZAÇÃO DE ESTADO (segurança na importação) ==== */
 function sanitizeState(s) {
@@ -152,6 +164,7 @@ function sanitizeState(s) {
   if (s.theme === 'dark') { s.colorMode = 'dark'; s.theme = 'default'; }
   if (s.theme === 'system') { s.colorMode = 'system'; s.theme = 'default'; }
   s.theme = themeOptions.some(theme => theme.id === s.theme) ? s.theme : 'default';
+  s.businessTheme = themeOptions.some(theme => theme.id === s.businessTheme) ? s.businessTheme : 'yellow';
   s.colorMode = ['light', 'dark', 'system'].includes(s.colorMode) ? s.colorMode : 'light';
   s.hideAmounts = Boolean(s.hideAmounts);
   s.hideHomeCards = Boolean(s.hideHomeCards);
@@ -226,7 +239,8 @@ function sanitizeState(s) {
 
 /* ==== MIGRAÇÃO ==== */
 function migrate(old) {
-  if (!old) return structuredClone(seed);
+  if (!old) old = { ...structuredClone(seed), version: 8 };
+  if (old.workspaces?.personal) old = { ...old, ...old.workspaces.personal, workspaces: old.workspaces };
   const savedBudgets = { ...(old.categoryBudgets || {}) };
   const presetBudgets = { Alimentação: 400, Casa: 1000, Saúde: 200, Transporte: 300 };
   if (old.version < 7) Object.entries(presetBudgets).forEach(([name, amount]) => {
@@ -282,11 +296,43 @@ function migrate(old) {
   );
   base.categoryBudgetsByMonth = cleanMonthlyBudgets(base.categoryBudgetsByMonth, 'expense');
   base.incomeCategoryBudgetsByMonth = cleanMonthlyBudgets(base.incomeCategoryBudgetsByMonth, 'income');
-  return sanitizeState(base);
+  const personal = sanitizeState(base);
+  const storedBusiness = old.workspaces?.business || freshBusinessWorkspace();
+  const business = sanitizeState({ ...structuredClone(seed), ...storedBusiness,
+    accounts: storedBusiness.accounts?.length ? storedBusiness.accounts : freshBusinessWorkspace().accounts,
+    categories: storedBusiness.categories || structuredClone(businessCategories) });
+  const workspaceData = workspace => Object.fromEntries(workspaceFields.map(key => [key, workspace[key]]));
+  const result = { ...personal, activeWorkspace: old.activeWorkspace === 'business' ? 'business' : 'personal',
+    workspaces: { personal: workspaceData(personal), business: workspaceData(business) } };
+  workspaceFields.forEach(key => delete result[key]);
+  return result;
 }
 
 /* ==== ESTADO GLOBAL ==== */
-let state = migrate(JSON.parse(localStorage.getItem(KEY) || 'null'));
+let rawState = migrate(JSON.parse(localStorage.getItem(KEY) || 'null'));
+let activeWorkspace = rawState.activeWorkspace === 'business' ? 'business' : 'personal';
+const state = new Proxy({}, {
+  get(_target, key) {
+    if (workspaceFields.includes(key)) return rawState.workspaces[activeWorkspace][key];
+    return rawState[key];
+  },
+  set(_target, key, value) {
+    if (workspaceFields.includes(key)) rawState.workspaces[activeWorkspace][key] = value;
+    else rawState[key] = value;
+    return true;
+  },
+  ownKeys() { return [...new Set([...Reflect.ownKeys(rawState), ...workspaceFields])]; },
+  getOwnPropertyDescriptor(_target, key) {
+    if (workspaceFields.includes(key)) return { configurable: true, enumerable: true, writable: true, value: rawState.workspaces[activeWorkspace][key] };
+    const descriptor = Object.getOwnPropertyDescriptor(rawState, key);
+    return descriptor ? { ...descriptor, configurable: true } : undefined;
+  }
+});
+function exportAppState() { return structuredClone(rawState); }
+function replaceAppState(next) {
+  rawState = migrate(next);
+  activeWorkspace = rawState.activeWorkspace === 'business' ? 'business' : 'personal';
+}
 let page = state.pinLock?.enabled ? 'lock' : 'home';
 let statsFilter = 'month';
 let statsType = 'expense';
@@ -318,13 +364,14 @@ function removeCategoryBudgets(type, name) {
 }
 
 function persist() {
-  localStorage.setItem(KEY, JSON.stringify(state));
+  rawState.activeWorkspace = activeWorkspace;
+  localStorage.setItem(KEY, JSON.stringify(rawState));
 }
 persist();
 
 function applyTheme() {
   const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-  document.documentElement.dataset.theme = state.theme;
+  document.documentElement.dataset.theme = activeWorkspace === 'business' ? state.businessTheme : state.theme;
   document.documentElement.dataset.mode = state.colorMode === 'system' ? (prefersDark ? 'dark' : 'light') : state.colorMode;
 }
 applyTheme();

@@ -102,6 +102,14 @@ html { font-size: calc(16px * var(--font-scale)); }
   --grad-blue-soft:linear-gradient(135deg,#d8b4fe 0%,#9333ea 100%);
   --shadow-blue:0 8px 24px rgba(147,51,234,.3);
 }
+:root[data-theme="yellow"] {
+  --blue-50:#fefce8; --blue-100:#fef9c3; --blue-200:#fef08a; --blue-300:#fde047; --blue-400:#facc15;
+  --blue-500:#eab308; --blue-600:#ca8a04; --blue-700:#a16207; --blue-800:#854d0e; --blue-900:#713f12;
+  --cyan-400:#fde047; --cyan-500:#eab308; --purple:var(--blue-600); --soft:var(--blue-50);
+  --grad-blue:linear-gradient(135deg,#facc15 0%,#eab308 50%,#ca8a04 100%);
+  --grad-blue-soft:linear-gradient(135deg,#fde047 0%,#eab308 100%);
+  --shadow-blue:0 8px 24px rgba(202,138,4,.32);
+}
 :root[data-mode="dark"] {
   color-scheme: dark;
   --ink:#f1f5f9; --ink-soft:#cbd5e1; --muted:#cbd5e1; --muted-2:#94a3b8;
@@ -2246,6 +2254,7 @@ body[data-app-page="launch"] .add-button { display:none; }
 .theme-preview::after { left:-34px; bottom:-60px; }
 .theme-preview[data-theme-preview="system"] { background:linear-gradient(128deg,#fcd34d 0 50%,#1f2937 50% 100%); }
 .theme-preview[data-theme-preview="default"] { background:linear-gradient(135deg,#60a5fa,#2563eb); }
+.theme-preview[data-theme-preview="yellow"] { background:linear-gradient(135deg,#fde047,#ca8a04); }
 .theme-preview[data-theme-preview="dark"] { background:linear-gradient(135deg,#111827,#1f2937); }
 .theme-preview[data-theme-preview="orange"] { background:linear-gradient(135deg,#fb923c,#ea580c); }
 .theme-preview[data-theme-preview="blue"] { background:linear-gradient(135deg,#22d3ee,#0891b2); }

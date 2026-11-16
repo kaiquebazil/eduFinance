@@ -1,0 +1,113 @@
+{
+  "version": 8,
+  "selectedMonth": "2026-11",
+  "activeWorkspace": "personal",
+  "workspaces": {
+    "personal": {
+      "accounts": [
+        {
+          "id": "bank",
+          "name": "Conta principal",
+          "icon": "🏦",
+          "initialBalance": 0,
+          "kind": "bank"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "demo-pessoal-salario",
+          "type": "income",
+          "category": "Salário",
+          "icon": "💼",
+          "amount": 5200,
+          "date": "2026-11-05",
+          "note": "Salário mensal",
+          "accountId": "bank"
+        },
+        {
+          "id": "demo-pessoal-freela",
+          "type": "income",
+          "category": "Outros",
+          "icon": "💰",
+          "amount": 750,
+          "date": "2026-11-11",
+          "note": "Trabalho freelance",
+          "accountId": "bank"
+        },
+        {
+          "id": "demo-pessoal-moradia",
+          "type": "expense",
+          "category": "Moradia",
+          "icon": "🏠",
+          "amount": 1650,
+          "date": "2026-11-08",
+          "note": "Aluguel",
+          "accountId": "bank"
+        },
+        {
+          "id": "demo-pessoal-mercado",
+          "type": "expense",
+          "category": "Alimentação",
+          "icon": "🍽️",
+          "amount": 386.45,
+          "date": "2026-11-13",
+          "note": "Compras do mês",
+          "accountId": "bank"
+        }
+      ]
+    },
+    "business": {
+      "accounts": [
+        {
+          "id": "business-bank",
+          "name": "Conta empresarial",
+          "icon": "🏢",
+          "initialBalance": 0,
+          "kind": "bank"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "demo-empresa-vendas",
+          "type": "income",
+          "category": "Vendas de produtos",
+          "icon": "💼",
+          "amount": 8400,
+          "date": "2026-11-04",
+          "note": "Vendas da primeira semana",
+          "accountId": "business-bank"
+        },
+        {
+          "id": "demo-empresa-servicos",
+          "type": "income",
+          "category": "Serviços prestados",
+          "icon": "💼",
+          "amount": 2750,
+          "date": "2026-11-12",
+          "note": "Projeto de consultoria",
+          "accountId": "business-bank"
+        },
+        {
+          "id": "demo-empresa-fornecedores",
+          "type": "expense",
+          "category": "Fornecedores",
+          "icon": "🏢",
+          "amount": 3180,
+          "date": "2026-11-07",
+          "note": "Reposição de materiais",
+          "accountId": "business-bank"
+        },
+        {
+          "id": "demo-empresa-marketing",
+          "type": "expense",
+          "category": "Marketing e publicidade",
+          "icon": "🏢",
+          "amount": 620,
+          "date": "2026-11-14",
+          "note": "Campanha de divulgação",
+          "accountId": "business-bank"
+        }
+      ]
+    }
+  }
+}

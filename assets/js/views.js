@@ -475,6 +475,11 @@ function settings() {
   </header>
   <div class="content">
     <div class="setting-list">
+      <button class="setting" data-switch-workspace="${activeWorkspace === 'personal' ? 'business' : 'personal'}">
+        <span class="s-icon">${activeWorkspace === 'personal' ? '🏢' : '👤'}</span>
+        <span><strong>${activeWorkspace === 'personal' ? 'Abrir conta empresarial' : 'Abrir conta pessoal'}</strong><small>Alternar conta em uso · dados independentes</small></span>
+        <b class="chev">›</b>
+      </button>
       <button class="setting" data-go="accounts">
         <span class="s-icon">💳</span>
         <span><strong>Cartões de crédito</strong><small>${state.accounts.filter(isCredit).length} cadastrado(s)</small></span>
@@ -492,7 +497,7 @@ function settings() {
       </button>
       <button class="setting" data-go="themes">
         <span class="s-icon">🎨</span>
-        <span><strong>Temas</strong><small>${themeOptions.find(theme => theme.id === state.theme)?.label || 'Padrão'} · ${{ light: 'Claro', dark: 'Escuro', system: 'Seguir sistema' }[state.colorMode]}</small></span>
+        <span><strong>Temas</strong><small>${themeOptions.find(theme => theme.id === (activeWorkspace === 'business' ? state.businessTheme : state.theme))?.label || 'Padrão'} · ${{ light: 'Claro', dark: 'Escuro', system: 'Seguir sistema' }[state.colorMode]}</small></span>
         <b class="chev">›</b>
       </button>
       <button class="setting" data-go="fontSize">
@@ -612,6 +617,7 @@ function lockScreen() {
 
 function themesPage() {
   const modeLabels = { light: 'Claro', dark: 'Escuro', system: 'Seguir o sistema' };
+  const selectedTheme = activeWorkspace === 'business' ? state.businessTheme : state.theme;
   return `<header class="top">
     <div class="topbar">
       <button class="icon-btn" data-go="settings" aria-label="Voltar">‹</button>
@@ -630,8 +636,8 @@ function themesPage() {
     </section>
     <h2 class="theme-colors-title">Cor de destaque</h2>
     <div class="theme-grid">
-      ${themeOptions.map(theme => `<button type="button" class="theme-card ${state.theme === theme.id ? 'selected' : ''}" data-theme-choice="${theme.id}" aria-pressed="${state.theme === theme.id}">
-        <span class="theme-preview" data-theme-preview="${theme.id}" aria-hidden="true"><i></i><b>${state.theme === theme.id ? '✓' : ''}</b></span>
+      ${themeOptions.map(theme => `<button type="button" class="theme-card ${selectedTheme === theme.id ? 'selected' : ''}" data-theme-choice="${theme.id}" aria-pressed="${selectedTheme === theme.id}">
+        <span class="theme-preview" data-theme-preview="${theme.id}" aria-hidden="true"><i></i><b>${selectedTheme === theme.id ? '✓' : ''}</b></span>
         <span class="theme-name">${theme.label}</span>
       </button>`).join('')}
     </div>

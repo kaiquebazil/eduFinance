@@ -185,7 +185,8 @@ document.addEventListener('click', e => {
 
   const themeChoice = e.target.closest('[data-theme-choice]');
   if (themeChoice) {
-    state.theme = themeChoice.dataset.themeChoice;
+    if (activeWorkspace === 'business') state.businessTheme = themeChoice.dataset.themeChoice;
+    else state.theme = themeChoice.dataset.themeChoice;
     persist(); applyTheme(); render();
     return;
   }
@@ -213,6 +214,15 @@ document.addEventListener('click', e => {
 
   const go = e.target.closest('[data-go]');
   if (go) { page = go.dataset.go; render(); return; }
+
+  const workspaceSwitch = e.target.closest('[data-switch-workspace]');
+  if (workspaceSwitch) {
+    activeWorkspace = workspaceSwitch.dataset.switchWorkspace;
+    state.activeWorkspace = activeWorkspace;
+    page = 'home'; applyTheme(); persist(); render();
+    toast(activeWorkspace === 'business' ? 'Conta empresarial' : 'Conta pessoal');
+    return;
+  }
 
   const month = e.target.closest('[data-month]');
   if (month) {
@@ -379,14 +389,14 @@ document.addEventListener('click', e => {
       'Apagar TODOS os dados?',
       'Isso remove permanentemente deste dispositivo todos os lançamentos, contas e cartões cadastrados, categorias personalizadas, orçamentos, recorrências, PIN e preferências. O EduFinance voltará à configuração inicial, sem lançamentos. Exporte um backup antes se quiser guardar seus dados.',
       () => {
-        const backup = structuredClone(state);
-        state = structuredClone(seed);
+        const backup = exportAppState();
+        replaceAppState(structuredClone(seed));
         state.transactions = [];
         page = 'home';
         applyTheme(); applyFontScale();
         persist(); render();
         toast('Todos os dados foram apagados', () => {
-          state = backup;
+          replaceAppState(backup);
           page = state.pinLock?.enabled ? 'lock' : 'home';
           applyTheme(); applyFontScale();
           persist(); render(); toast('Dados restaurados');

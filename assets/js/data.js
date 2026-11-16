@@ -56,7 +56,7 @@ function deleteTransaction(id) {
 }
 
 function exportData() {
-  const backup = { ...state };
+  const backup = exportAppState();
   delete backup.pinLock;
   delete backup.hideAmounts;
   delete backup.hideHomeCards;
@@ -79,9 +79,9 @@ function importData() {
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.transactions || !data.accounts) throw new Error('Formato inválido');
+        if (!(data.transactions && data.accounts) && !(data.workspaces?.personal && data.workspaces?.business)) throw new Error('Formato inválido');
         const localPrivacy = { pinLock: state.pinLock, hideAmounts: state.hideAmounts, hideHomeCards: state.hideHomeCards, soundEnabled: state.soundEnabled };
-        state = migrate(data); // sanitizeState é chamado dentro de migrate
+        replaceAppState(data); // sanitizeState é chamado dentro de migrate
         Object.assign(state, localPrivacy);
         applyTheme();
         applyFontScale();
