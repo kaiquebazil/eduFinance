@@ -397,8 +397,13 @@ function budget() {
   const actualLabel = isIncome ? 'recebido' : 'utilizado';
   const categories = state.categories[type] || [];
   const byCategory = {};
+  const previousMonth = addMonths(state.selectedMonth, -1);
+  const previousByCategory = {};
   inMonth().filter(x => x.type === type).forEach(x => {
     byCategory[x.category] = (byCategory[x.category] || 0) + Number(x.amount);
+  });
+  state.transactions.filter(x => x.type === type && x.date?.startsWith(previousMonth)).forEach(x => {
+    previousByCategory[x.category] = (previousByCategory[x.category] || 0) + Number(x.amount);
   });
   const goals = Object.entries(budgetMap)
     .map(([name, amount]) => {
@@ -451,6 +456,7 @@ function budget() {
           <span class="s-icon">${escapeHtml(category.icon)}</span>
           <span style="flex:1">
             <strong>${escapeHtml(category.name)}</strong>
+            <small class="budget-previous-month">Mês anterior: ${money(previousByCategory[category.name] || 0)} ${isIncome ? 'recebido' : 'gasto'}</small>
             ${hasLimit
               ? `<small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
                 <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>`

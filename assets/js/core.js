@@ -344,8 +344,15 @@ let categoryDetailSort = 'date';
 
 function categoryBudgetMap(type, month = state.selectedMonth, create = false) {
   const key = type === 'income' ? 'incomeCategoryBudgetsByMonth' : 'categoryBudgetsByMonth';
-  if (create) state[key][month] ||= {};
-  return state[key][month] || {};
+  const maps = state[key];
+  if (Object.prototype.hasOwnProperty.call(maps, month)) return maps[month];
+  const previous = Object.entries(maps)
+    .filter(([savedMonth, monthMap]) => savedMonth < month && Object.keys(monthMap || {}).length)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .at(-1)?.[1] || {};
+  if (!create) return previous;
+  maps[month] = structuredClone(previous);
+  return maps[month];
 }
 
 function renameCategoryBudgets(type, previousName, nextName) {
