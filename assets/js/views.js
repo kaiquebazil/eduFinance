@@ -399,11 +399,14 @@ function budget() {
   const byCategory = {};
   const previousMonth = addMonths(state.selectedMonth, -1);
   const previousByCategory = {};
+  const previousIconByCategory = {};
   inMonth().filter(x => x.type === type).forEach(x => {
     byCategory[x.category] = (byCategory[x.category] || 0) + Number(x.amount);
   });
   state.transactions.filter(x => x.type === type && x.date?.startsWith(previousMonth)).forEach(x => {
-    previousByCategory[x.category] = (previousByCategory[x.category] || 0) + Number(x.amount);
+    const name = x.category || 'Outros';
+    previousByCategory[name] = (previousByCategory[name] || 0) + Number(x.amount);
+    previousIconByCategory[name] ||= x.icon || '🏷️';
   });
   const goals = Object.entries(budgetMap)
     .map(([name, amount]) => {
@@ -419,6 +422,17 @@ function budget() {
     .map(category => ({ category, amount: 0, spent: byCategory[category.name], progress: 0, hasLimit: false }))
     .sort((a, b) => b.spent - a.spent);
   const budgetRows = [...goals, ...unbudgeted];
+  const shownCategories = new Set(budgetRows.map(row => row.category.name));
+  const previousOnly = categories
+    .filter(category => previousByCategory[category.name] > 0 && !shownCategories.has(category.name))
+    .map(category => ({ category, amount: 0, spent: byCategory[category.name] || 0, progress: 0, hasLimit: false }))
+    .sort((a, b) => previousByCategory[b.category.name] - previousByCategory[a.category.name]);
+  const allShownCategories = new Set([...shownCategories, ...previousOnly.map(row => row.category.name)]);
+  const removedCategories = Object.keys(previousByCategory)
+    .filter(name => previousByCategory[name] > 0 && !allShownCategories.has(name))
+    .map(name => ({ category: { name, icon: previousIconByCategory[name] }, amount: 0, spent: byCategory[name] || 0, progress: 0, hasLimit: false, historicalOnly: true }))
+    .sort((a, b) => previousByCategory[b.category.name] - previousByCategory[a.category.name]);
+  const allBudgetRows = [...budgetRows, ...previousOnly, ...removedCategories];
   const monthlyBudget = goals.reduce((sum, goal) => sum + goal.amount, 0);
   const actual = Object.values(byCategory).reduce((sum, amount) => sum + amount, 0);
   const actualUsed = monthlyBudget ? actual / monthlyBudget * 100 : 0;
@@ -450,9 +464,9 @@ function budget() {
     <button class="save" id="addCategoryBudget" data-budget-type="${type}" style="margin-top:12px">Adicionar meta de ${isIncome ? 'receita' : 'despesa'} por categoria</button>
 
     <div class="budget-goals-heading"><h2 class="section-title">Metas de ${isIncome ? 'receita' : 'despesa'} por categoria</h2><span>${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}</span></div>
-    ${budgetRows.length ? `<div class="setting-list">
-      ${budgetRows.map(({ category, amount, spent, progress, hasLimit }) => `
-        <div class="setting category-row" data-cat-budget="${escapeHtml(category.name)}" data-budget-type="${type}">
+    ${allBudgetRows.length ? `<div class="setting-list">
+      ${allBudgetRows.map(({ category, amount, spent, progress, hasLimit, historicalOnly }) => `
+        <div class="setting category-row" ${historicalOnly ? '' : `data-cat-budget="${escapeHtml(category.name)}" data-budget-type="${type}`}>
           <span class="s-icon">${escapeHtml(category.icon)}</span>
           <span style="flex:1">
             <strong>${escapeHtml(category.name)}</strong>
@@ -460,9 +474,11 @@ function budget() {
             ${hasLimit
               ? `<small>${money(spent)} ${actualLabel} de ${money(amount)} · ${Math.round(progress)}%</small>
                 <div class="budget-progress ${isIncome ? 'income-goal' : budgetHeatClass(progress)}" style="margin:6px 0 0"><i style="width:${Math.min(progress, 100)}%"></i></div>`
-              : `<small>${money(spent)} ${actualLabel} · Sem limite definido</small><small class="budget-no-limit-hint">Toque para adicionar limite ou mover lançamentos</small>`}
+              : historicalOnly
+                ? `<small>${money(spent)} ${actualLabel} · Categoria removida</small>`
+                : `<small>${money(spent)} ${actualLabel} · Sem limite definido</small><small class="budget-no-limit-hint">Toque para adicionar limite ou mover lançamentos</small>`}
           </span>
-          <b class="chev">›</b>
+          ${historicalOnly ? '' : '<b class="chev">›</b>'}
         </div>`).join('')}
     </div>` : '<div class="empty">Nenhuma meta por categoria definida.</div>'}
   </div>`;
