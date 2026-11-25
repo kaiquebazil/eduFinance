@@ -532,6 +532,11 @@ function settings() {
         <span><strong>Privacidade e bloqueio</strong><small>${state.pinLock?.enabled ? 'PIN ativado' : 'Ocultar valores e configurar PIN'}</small></span>
         <b class="chev">›</b>
       </button>
+      <a class="setting" href="./politica-de-privacidade.html" target="_blank" rel="noopener">
+        <span class="s-icon">📄</span>
+        <span><strong>Política de privacidade</strong><small>Como seus dados são tratados</small></span>
+        <b class="chev">↗</b>
+      </a>
       <button class="setting sound-setting" id="toggleTapSound" aria-pressed="${state.soundEnabled}" aria-label="Som dos toques ${state.soundEnabled ? 'ativado' : 'desativado'}">
         <span class="s-icon">${state.soundEnabled ? '🔊' : '🔇'}</span>
         <span><strong>Som dos toques</strong><small>${state.soundEnabled ? 'Ativado' : 'Desativado'}</small></span>
